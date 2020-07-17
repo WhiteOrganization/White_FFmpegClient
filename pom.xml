@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.white_sdev</groupId>
+    <artifactId>White_FFmpegClient</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>White_FFmpegClient</name>
+    <description>Client to help with the encoding files (Streams) process with ffmpeg</description>
+    <packaging>jar</packaging>
+    <properties>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<maven.compiler.source>12</maven.compiler.source>
+	<maven.compiler.target>12</maven.compiler.target>
+	<java.version>1.8</java.version>
+    </properties>
+    
+    <dependencies>
+
+	<!-- https://mvnrepository.com/artifact/org.bitbucket.white_sdev/PropertiesManager -->
+	<dependency>
+	    <groupId>org.bitbucket.white_sdev</groupId>
+	    <artifactId>PropertiesManager</artifactId>
+	    <version>1.0.3</version>
+	</dependency>
+	
+
+	<dependency>
+	    <groupId>org.slf4j</groupId>
+	    <artifactId>slf4j-api</artifactId>
+	    <version>1.7.26</version>
+	</dependency>
+	
+	<dependency>
+	    <groupId>org.projectlombok</groupId>
+	    <artifactId>lombok</artifactId>
+	    <version>1.18.6</version>
+	    <type>jar</type>
+	</dependency>
+	<dependency>
+	    <groupId>com.github.white-sdev</groupId>
+	    <artifactId>White_Validations</artifactId>
+	    <version>1.0.0</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
+	<dependency>
+	    <groupId>com.googlecode.json-simple</groupId>
+	    <artifactId>json-simple</artifactId>
+	    <version>1.1.1</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/org.json/json -->
+	<!--	<dependency>
+	    <groupId>org.json</groupId>
+	    <artifactId>json</artifactId>
+	    <version>20200518</version>
+	    <type>jar</type>
+	</dependency>-->
+	
+	<!--necesary for Executable JAR -->
+	<dependency>
+	    <groupId>commons-lang</groupId>
+	    <artifactId>commons-lang</artifactId>
+	    <version>2.1</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.codehaus.plexus</groupId>
+	    <artifactId>plexus-utils</artifactId>
+	    <version>1.1</version>
+	</dependency>
+	
+    </dependencies>
+    <build>
+	<plugins>
+	    
+	    <plugin>
+		<groupId>org.projectlombok</groupId>
+		<artifactId>lombok-maven-plugin</artifactId>
+		<version>1.18.12.0</version>
+		<configuration>
+		    <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+		    <outputDirectory>${delombok.output}</outputDirectory>
+		    <addOutputDirectory>false</addOutputDirectory>
+		</configuration>
+		<executions>
+		    <execution>
+			<!-- Generate delomboked code -->
+			<phase>generate-sources</phase>
+			<goals>
+			    <goal>delombok</goal>
+			</goals>
+		    </execution>
+		</executions>
+	    </plugin>
+	    
+	    <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-surefire-plugin</artifactId>
+		<version>2.22.2</version>
+	    </plugin>
+	    <!--this is supposed to generate the executable JAR-->
+	    <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-jar-plugin</artifactId>
+		<version>3.2.0</version>
+		<configuration>
+		    <archive>
+			<manifest>
+			    <addClasspath>true</addClasspath>
+			    <mainClass>org.white_sdev.white_ffmpegclient.White_FFmpegClient</mainClass>
+			</manifest>
+		    </archive>
+		</configuration>
+	    </plugin>
+	    
+	</plugins>
+    </build>
+
+</project>

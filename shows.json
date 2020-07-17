@@ -1,0 +1,34 @@
+{
+	"name":"One Piece",
+	"seasons": [
+		{"number":"01","startsOnEpisode":1,"endsOnEpisode":61},
+		{"number":"02","startsOnEpisode":62,"endsOnEpisode":77},
+		{"number":"03","startsOnEpisode":78,"endsOnEpisode":92},
+		{"number":"04","startsOnEpisode":93,"endsOnEpisode":130},
+		{"number":"05","startsOnEpisode":131,"endsOnEpisode":143},
+		{"number":"06","startsOnEpisode":144,"endsOnEpisode":195},
+		{"number":"07","startsOnEpisode":196,"endsOnEpisode":228},
+		{"number":"08","startsOnEpisode":229,"endsOnEpisode":263},
+		{"number":"09","startsOnEpisode":264,"endsOnEpisode":336},
+		{"number":"10","startsOnEpisode":337,"endsOnEpisode":381},
+		{"number":"11","startsOnEpisode":382,"endsOnEpisode":407},
+		{"number":"12","startsOnEpisode":408,"endsOnEpisode":421},
+		{"number":"13","startsOnEpisode":422,"endsOnEpisode":458},
+		{"number":"14","startsOnEpisode":459,"endsOnEpisode":516},
+		{"number":"15","startsOnEpisode":517,"endsOnEpisode":578},
+		{"number":"16","startsOnEpisode":579,"endsOnEpisode":628},
+		{"number":"17","startsOnEpisode":629,"endsOnEpisode":746},
+		{"number":"18","startsOnEpisode":747,"endsOnEpisode":782},
+		{"number":"19","startsOnEpisode":783,"endsOnEpisode":877},
+		{"number":"20","startsOnEpisode":878,"endsOnEpisode":889},
+		{"number":"21","startsOnEpisode":890,"endsOnEpisode":null}
+	]
+	
+}
+{
+	"name":"Test",
+	"seasons":[
+		{"number":"01","startsOnEpisode":1.0,"endsOnEpisode":12.0},
+		{"number":"02","startsOnEpisode":13.0,"endsOnEpisode":null}
+	]
+}
