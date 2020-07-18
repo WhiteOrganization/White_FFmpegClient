@@ -109,18 +109,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import lombok.extern.slf4j.Slf4j;
-//import static org.white_sdev.white_validations.parameters.ParameterValidator.*;
+import static org.white_sdev.white_validations.parameters.ParameterValidator.*;
 import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
+import org.white_sdev.white_ffmpegclient.service.EncoderConfigurations;
 import org.white_sdev.white_ffmpegclient.service.EncoderService;
-import org.white_sdev.white_ffmpegclient.view.JDialogTerminal;
 import org.white_sdev.white_ffmpegclient.view.JFrameTerminal;
 import org.white_sdev.white_ffmpegclient.view.MainJFrame;
 
@@ -148,8 +151,7 @@ public class MainFrameController {
      */
     public MainFrameController(MainJFrame viewFrame) {
 	log.trace("::MainFrameController() - Start: ");
-	//TODO Uncomment
-	//notNullValidation(viewFrame,"Impossible to initialize the controller. You must provide a View to interact with. viewFrame object can't be null.");
+	notNullValidation(viewFrame,"Impossible to initialize the controller. You must provide a View to interact with. viewFrame object can't be null.");
 	try{
 	    
 	    view=viewFrame;	    
@@ -170,6 +172,8 @@ public class MainFrameController {
 	    DefaultTableModel tableModel= (DefaultTableModel) jTable.getModel();
 	    //tableModel.setColumnIdentifiers(JTableFile.REDUNDANT_COLUMN_NAMES.toArray());
 	    tableModel.addRow(new Object[]{"No Files Loaded","",0});
+	    view.jPanelFFmpegPath.setVisible(false);
+	    
 	    
 	} catch (Exception e) {
 	    throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
@@ -183,6 +187,8 @@ public class MainFrameController {
 	    
 	    
 	    LinkedHashSet<File> files=getFileChooserFiles();
+	    //if the user chooses any file the view should enable encoding buttons
+	    if(files.size()>0) view.enableEncodingButtons();
 	    jfiles=format(files);
 	    loadFilesOnView(jfiles,view.getJTableFiles());
 	    log.trace("::loadFiles() - Finish: ");
@@ -194,15 +200,18 @@ public class MainFrameController {
     
     public void encode(JFrame frame) {
 	log.trace("::encode() - Start: launching new Thread");
-	
+	notNullValidation(frame);
 	try {
-	    //launchTerminal();
-	    encoderService.getEncodingCommand(reformat(jfiles));
+	    launchTerminal();
 	    
 	    log.trace("::encode() - Finish: ");
 	    
+	} catch (White_FFmpegClientException e) {
+	    log.error("An error ocurred when trying to encode the files.", e);
+	    JOptionPane.showMessageDialog( null,"An error ocurred when trying to encode the files. \n"+ e.getCauses() );
 	} catch (Exception e) {
-	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+	    log.error("An error ocurred when trying to encode the files.", e);
+	    JOptionPane.showMessageDialog(view,"An unexpected error has ocurred when trying to encode the files. ");
 	}
     }
     //</editor-fold>
@@ -232,8 +241,8 @@ public class MainFrameController {
 
     public void loadFilesOnView(Set<JTableFile> jfiles,JTable table) {
 	log.trace("::loadFilesOnView(parameter) - Start: ");
-	//TODO Uncomment
-//	notNullValidation(files);
+	notNullValidation(jfiles);
+	notNullValidation(table);
 	try {
 	    
 	     DefaultTableModel tableModel= (DefaultTableModel) table.getModel();
@@ -281,11 +290,11 @@ public class MainFrameController {
 	    return files;
 	    
 	} catch (Exception e) {
-	    throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
+	    throw new White_FFmpegClientException("Impossible to obtain files from the list due to an unexpected error.", e);
 	}
     }
     
-    private void launchTerminal() {
+    public void launchTerminal() {
 	log.trace("::launchTerminal() - Start: ");
 	try {
 	    
@@ -298,22 +307,33 @@ public class MainFrameController {
 			terminal.pack();
 			terminal.setVisible(true);
 			
-			displayCommand(terminal.getTerminal(), encoderService.getEncodingCommand(reformat(jfiles)) );
+			loadEncoderConfigurations();
+			Boolean success=executeCommands(terminal.getTerminal(), encoderService.getEncodingCommands(reformat(jfiles)) );
+			
+			if(!success) {
+			    javax.swing.JOptionPane.showMessageDialog(null, "No commands to execute. No files selected?");
+			    terminal.dispose();
+			}
+			
 
 			log.trace("::encode(parameter) - Finish: ");
+		    } catch (White_FFmpegClientException e) {
+			log.error("An error occurred when trying to launch the terminal to show the files encoding status.", e);
+			JOptionPane.showMessageDialog( null,"An error occurred when trying to launch the terminal to show the files encoding status. \n"+ e.getCauses() );
 		    } catch (Exception e) {
-			throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+			log.error("An error occurred when trying to encode the files.", e);
+			JOptionPane.showMessageDialog(view,"An unexpected error has occurred when trying to launch the terminal. ");
 		    }
 		    
 		}
 
-		private void displayCommand(JTextArea terminal,String [] cmd) {
-		    log.trace("::displayCommand(parameter) - Start: ");
-		    if (cmd == null) throw new IllegalArgumentException("The parameter can't be null.");
+		private Boolean executeCommands(JTextArea terminal,String [] commands) {
+		    log.trace("::executeCommands(terminal,commands) - Start: ");
+		    notNullValidation(terminal,"Imposible to show the command progress without a terminal. Please ensure the provided terminal is not null");
 		    try {
-			for(int i=0;i<100;i++){
-
-			    InputStream inputStream = Runtime.getRuntime().exec(cmd).getInputStream();
+			
+			if(commands!=null && commands.length>0){
+			    InputStream inputStream = Runtime.getRuntime().exec(commands).getInputStream();
 			    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
 			    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
@@ -324,28 +344,147 @@ public class MainFrameController {
 				//TODO Verify if this is needed
 				terminal.setCaretPosition(terminal.getDocument().getLength());
 			    }
+			    log.trace("::executeCommands(terminal,commands) - Finish: Success"); 
+			    return true;
+			}else{
+			    log.trace("::executeCommands(terminal,commands) - Finish: No commands"); 
+			    return false;
 			}
 			
-			log.trace("::displayCommand(parameter) - Finish: "); 
 			
 		    } catch (Exception e) {
-			throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+			throw new White_FFmpegClientException("Error when executing the encoding command(s).", e);
+		    }
+		}
+	    };
+	    terminalLauncher.start();
+	    
+	    log.trace("::executeCommands(terminal,commands) - Finish: ");
+	    
+	} catch (White_FFmpegClientException e) {
+	    log.error("::executeCommands(terminal,commands) An error occurred when trying to launch the terminal to show the files encoding status.", e);
+	    JOptionPane.showMessageDialog( null,"An error occurred when trying to launch the terminal to show the files encoding status. \n"+ e.getCauses() );
+	} catch (Exception e) {
+	    log.error("::executeCommands(terminal,commands) An error occurred when trying to encode the files.", e);
+	    JOptionPane.showMessageDialog(view,"An unexpected error has occurred when trying to launch the terminal. ");
+	}
+    }
+    
+    public void loadEncoderConfigurations() {
+	log.trace("::loadEncoderConfigurations() - Start: ");
+	try {
+	    
+	    EncoderConfigurations.outputExtension=view.getExtension();
+	    EncoderConfigurations.includeSubtitles=view.getJCheckBoxIncludeSubs().isEnabled();
+	    EncoderConfigurations.selectedLanguage=(EncoderConfigurations.Language) view.jComboBoxDefaultLanguage.getSelectedItem();
+	    
+	    log.trace("::loadEncoderConfigurations() - Finish: ");
+	} catch (Exception e) {
+	    throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
+	}
+    }
+
+    //</editor-fold>
+
+    public void showCommands() {
+	log.trace("::showCommands() - Start: ");
+	
+	try {
+	    
+	    launchCommandsExposer();
+	    
+	    log.trace("::showCommands() - Finish: ");
+	} catch (White_FFmpegClientException e) {
+	    log.error("An error ocurred when trying to generate the commands.", e);
+	    JOptionPane.showMessageDialog( null,"An error ocurred when trying to generate the commands. \n"+ e.getCauses() );
+	} catch (Exception e) {
+	    log.error("An error ocurred when trying to generate the commands.", e);
+	    JOptionPane.showMessageDialog(view,"An error ocurred when trying to generate the commands. ");
+	}
+    }
+
+    
+    public void launchCommandsExposer() {
+	log.trace("::launchTerminal() - Start: ");
+	try {
+	    
+	    Thread terminalLauncher = new Thread() {
+		@Override
+		public void run(){
+		    
+		    try {
+			JFrameTerminal terminal = new JFrameTerminal();
+			terminal.pack();
+			terminal.setVisible(true);
+			
+			loadEncoderConfigurations();
+			Boolean success=displayCommand(terminal.getTerminal(), encoderService.getEncodingCommands(reformat(jfiles)) );
+			
+			if(!success) {
+			    javax.swing.JOptionPane.showMessageDialog(null, "No commands to show. No files selected?");
+			    terminal.dispose();
+			}
+			
+
+			log.trace("::encode(parameter) - Finish: ");
+		    } catch (White_FFmpegClientException e) {
+			log.error("An error occurred when trying to launch the terminal to show the files encoding status.", e);
+			JOptionPane.showMessageDialog( null,"An error occurred when trying to launch the terminal to show the files encoding status. \n"+ e.getCauses() );
+		    } catch (Exception e) {
+			log.error("An error occurred when trying to encode the files.", e);
+			JOptionPane.showMessageDialog(view,"An unexpected error has occurred when trying to launch the terminal. ");
+		    }
+		    
+		}
+
+		private Boolean displayCommand(JTextArea terminal,String [] commands) {
+		    log.trace("::displayCommand(terminal,commands) - Start: ");
+		    notNullValidation(terminal,"Imposible to show the command progress without a terminal. Please ensure the provided terminal is not null");
+		    try {
+			
+			if(commands!=null && commands.length>0){
+			    
+			    for(var command:commands){
+				terminal.append(command + "\n");
+				//TODO Verify if this is needed
+				terminal.setCaretPosition(terminal.getDocument().getLength());
+			    }
+			    
+			    log.trace("::displayCommand(parameter) - Finish: Success"); 
+			    return true;
+			}else{
+			    log.trace("::displayCommand(parameter) - Finish: No commands"); 
+			    return false;
+			}
+			
+			
+		    } catch (Exception e) {
+			throw new White_FFmpegClientException("Error when generating the encoding command(s).", e);
 		    }
 		}
 	    };
 	    terminalLauncher.start();
 	    
 	    log.trace("::launchTerminal() - Finish: ");
-	    throw new UnsupportedOperationException("Not supported yet.");
+	    
+	} catch (White_FFmpegClientException e) {
+	    log.error("An error occurred when trying to launch the terminal to show the files encoding status.", e);
+	    JOptionPane.showMessageDialog( null,"An error occurred when trying to launch the terminal to show the files encoding status. \n"+ e.getCauses() );
 	} catch (Exception e) {
-	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+	    log.error("An error occurred when trying to encode the files.", e);
+	    JOptionPane.showMessageDialog(view,"An unexpected error has occurred when trying to launch the terminal. ");
 	}
     }
 
-    //</editor-fold>
-
-    
-    
+    public void customFFmpegPathActivated() {
+	log.trace("::customFFmpegPathActivated() - Start: ");
+	try {
+	    view.jPanelFFmpegPath.setVisible(true);
+	    log.trace("::customFFmpegPathActivated() - Finish: ");
+	} catch (Exception e) {
+	    throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
+	}
+    }
     
     
     public class JTableFile{
@@ -364,8 +503,7 @@ public class MainFrameController {
 
 	JTableFile(File file) {
 	    log.trace("::JTableFile(parameter) - Start: ");
-	    //TODO Uncomment
-	    //notNullValidation(file);
+	    notNullValidation(file);
 	    try {
 		this.file=file;
 		this.fileName=file.getName();

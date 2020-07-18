@@ -104,6 +104,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
+import static org.white_sdev.white_validations.parameters.ParameterValidator.notNullValidation;
 
 /**
  * 
@@ -112,12 +113,12 @@ import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
  */
 @Slf4j
 public class Season {
-    
-    String number;
+
+    public String number;
     private LinkedHashSet<Episode> espisodes;
-    Float startsOnEpisode;
-    Float endsOnEpisode;
-    Show show;
+    public Float startsOnEpisode;
+    public Float endsOnEpisode;
+    public Show show;
     
     
     /**
@@ -132,8 +133,8 @@ public class Season {
      * @throws IllegalArgumentException - if the argument provided is null.
      */
     public Season(String number,Show show,Float startsOnEpisode,Float endsOnEpisode) {
-	//TODO Uncomment
-//	notNullValidation(name);
+	notNullValidation(show,"It cant be a Season without show, please provide the show to which this season belongs");
+	notNullValidation( new Object[]{number, startsOnEpisode});
 	this.number=number;
 	this.show=show;
 	this.startsOnEpisode=startsOnEpisode;
@@ -142,8 +143,7 @@ public class Season {
     }
 
     public Season(String number,Show show,Float startsOnEpisode) {
-	//TODO Uncomment
-//	notNullValidation(name);
+	notNullValidation( new Object[]{number, show, startsOnEpisode});
 	this.number=number;
 	this.show=show;
 	this.startsOnEpisode=startsOnEpisode;
@@ -191,13 +191,41 @@ public class Season {
     }
     
     public static Season toSeason(JSONObject seasonJSON,Show show){
-         
-	Season season=new Season(
-		seasonJSON.get("number").toString(), 
-		show, 
-		Float.parseFloat(seasonJSON.get("startsOnEpisode").toString()),
-		Float.parseFloat(seasonJSON.get("endsOnEpisode").toString()));
-        return season;
-	
+	if(seasonJSON==null)return null;
+         try{
+	     Object numberObject=seasonJSON.get("number");
+	     Object startsOnEpisodeObject = seasonJSON.get("startsOnEpisode");
+	     Object endsOnEpisodeObject = seasonJSON.get("endsOnEpisode");
+	    Season season=new Season(
+		    numberObject!=null?seasonJSON.get("number").toString():null, 
+		    show, 
+		    startsOnEpisodeObject!=null?Float.parseFloat(startsOnEpisodeObject.toString()):null,
+		    endsOnEpisodeObject != null?Float.parseFloat(endsOnEpisodeObject.toString() ) :null 
+	    );
+	    return season;
+	 }catch(Exception e){
+	     throw new White_FFmpegClientException("Impossible to parse JSON Object to Show Season",e);
+	 }
+    }
+    
+    
+    
+    @Override
+    public String toString() {
+	return "Season{[number:" + number + "][startsOnEpisode:" + startsOnEpisode + "][endsOnEpisode:" + endsOnEpisode + "][espisodes:" + espisodes + "]}";
+    }
+
+    Integer getNumberOfEpisodeNumberDigits() {
+	log.trace("::getNumberOfEpisodeNumberDigits() - Start: ");
+	try {
+	    
+	    Integer numberOfEpisodeNumberDigits=endsOnEpisode!=null?(""+(endsOnEpisode.intValue()-startsOnEpisode.intValue())).length():2;
+	    
+	    log.trace("::getNumberOfEpisodeNumberDigits() - Finish: ");
+	    return numberOfEpisodeNumberDigits;
+	    
+	} catch (Exception e) {
+	    throw new White_FFmpegClientException("Couln't obtain the number of digits that an episode of this season should have.", e);
+	}
     }
 }

@@ -1,6 +1,6 @@
 /*
- *  Filename:  Episode.java
- *  Creation Date:  Jul 16, 2020
+ *  Filename:  EncoderServiceTest.java
+ *  Creation Date:  Jul 18, 2020
  *  Purpose:   
  *  Author:    <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
  * 
@@ -96,83 +96,54 @@
  * 
  * Creative Commons may be contacted at creativecommons.org.
  */
-package org.white_sdev.white_ffmpegclient.model.bean;
-
-import lombok.extern.slf4j.Slf4j;
+package org.white_sdev.tests.white_ffmpegclient.service;
 
 import java.io.File;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import static org.white_sdev.white_validations.parameters.ParameterValidator.notNullValidation;
-
+import java.util.LinkedHashSet;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
+import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
+import org.white_sdev.white_ffmpegclient.service.EncoderService;
 
 /**
- * 
+ *
  * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
- * @since Jul 16, 2020
  */
 @Slf4j
-public class Episode {
-    
-    public String name;
-    public String seasonEpisodeNumber;
-    public String absoluteEpisodeNumber;
-    public Season season;
-    public File file;
-    public String encodingCommand;
+public class EncoderServiceTest {
     
     /**
-     * Class Constructor.{Requirement_Reference}
-     * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
-     * @param name
-     * @param seasonEpisodeNumber
-     * @param absoluteEpisodeNumber
-     * @param season
-     * @since Jul 16, 2020
-     * @param parameter The parameter to create the object.
-     * @throws IllegalArgumentException - if the argument provided is null.
+     * Test of getEncodingCommands method, of class EncoderService.
      */
-    public Episode(String seasonEpisodeNumber,String absoluteEpisodeNumber,Season season) {
-	notNullValidation(absoluteEpisodeNumber);
-	notNullValidation(season);
-	//TODO Calculate seasonEpisodeNumber if it is null
-	this.seasonEpisodeNumber=seasonEpisodeNumber!=null?seasonEpisodeNumber:calculateSeasonEpisodeNumber(absoluteEpisodeNumber,season);
-	this.absoluteEpisodeNumber=absoluteEpisodeNumber;
-	this.season=season;
-    }
-    
-    public Episode(String absoluteEpisodeNumber,Season season) {
-	this(null,absoluteEpisodeNumber,season);
-    }
-    
-
-    public static String calculateSeasonEpisodeNumber(String absoluteEpisodeNumberString, Season season) {
-	log.trace("::calculateSeasonEpisodeNumber(parameter) - Start: ");
-	notNullValidation(absoluteEpisodeNumberString);
-	
+    @Test
+    public void testGetEncodingCommand() {
+	log.trace("::testGetEncodingCommand() - Start:");
 	try {
-	    
-	    Integer seasonEpisodeNumber=Integer.parseInt(absoluteEpisodeNumberString)-season.startsOnEpisode.intValue()+1;
-	    Integer seasonDigits=season.getNumberOfEpisodeNumberDigits();
-	    if(season.endsOnEpisode!=null){
 
-		log.trace("::calculateSeasonEpisodeNumber(parameter) - Finish: calculated season episode number");
-		return String.format("%0"+seasonDigits+"d", seasonEpisodeNumber);
-	    }else{
-		
-		log.warn("::calculateSeasonEpisodeNumber(parameter) - Finish: current season, imposible to calculate episode number format length");
-		return String.format("%0"+seasonDigits+"d", seasonEpisodeNumber);
-	    }
+	    String fileName = "C:\\test\\[Erai-raws] One Piece - 837 [1080p][Multiple Subtitle].mkv";
+	    String expected="ffmpeg -i \"C:\\test\\[Erai-raws] One Piece - 837 [1080p][Multiple Subtitle].mkv\" -vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v 12M -maxrate:v 15M -cq 24 -qmin 24 -qmax 24 -rc cbr -c:a aac -b:a 224k -map 0:v -map 0:a -map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text \"C:\\test\\One Piece S19E55-0837-[NvEnc@24+slow][ffmpeg].mp4\"";
+	    
+	    File file=new File(fileName);
+	    EncoderService encoder=new EncoderService();
+	    LinkedHashSet<File> files=new LinkedHashSet<>(){{add(file);}};
+	    String[] cmmds=encoder.getEncodingCommands(files);
+	    String result=cmmds[0];
+	    System.out.println("expected: "+expected);
+	    System.out.println("result  : "+result);
+	    assert(expected.equals( result ));
 	    
 	    
+	    
+	    
+	    log.trace("::testGetEncodingCommand() - Finish:");
+	    
+	} catch (White_FFmpegClientException e) {
+	    log.error("::testGetEncodingCommand(): An error ocurred when trying to launch the terminal to show the files encoding status.\n", e.getCauses());
+	    throw e;
 	} catch (Exception e) {
-	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+	    log.error("::testGetEncodingCommand(): Exception ocurred", e);
+	    throw e;
 	}
-    }
-    
-    @Override
-    public String toString() {
-	return "Episode{[name:" + name + "][seasonEpisodeNumber:" + seasonEpisodeNumber + "][absoluteEpisodeNumber:" + absoluteEpisodeNumber + "]}";
     }
     
 }

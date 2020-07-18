@@ -1,4 +1,4 @@
-{
+[{
 	"name":"One Piece",
 	"seasons": [
 		{"number":"01","startsOnEpisode":1,"endsOnEpisode":61},
@@ -24,11 +24,11 @@
 		{"number":"21","startsOnEpisode":890,"endsOnEpisode":null}
 	]
 	
-}
+},
 {
-	"name":"Test",
+	"name":"Prueba",
 	"seasons":[
 		{"number":"01","startsOnEpisode":1.0,"endsOnEpisode":12.0},
 		{"number":"02","startsOnEpisode":13.0,"endsOnEpisode":null}
 	]
-}
+}]

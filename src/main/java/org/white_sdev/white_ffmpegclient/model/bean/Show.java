@@ -103,6 +103,8 @@ import java.util.LinkedHashSet;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
+import static org.white_sdev.white_validations.parameters.ParameterValidator.notNullValidation;
 
 /**
  * 
@@ -112,7 +114,7 @@ import org.json.simple.JSONObject;
 @Slf4j
 public class Show {
     
-    String name;
+    public String name;
     private LinkedHashSet<Season> seasons;
     
     /**
@@ -123,8 +125,7 @@ public class Show {
      * @throws IllegalArgumentException - if the argument provided is null.
      */
     public Show(String name) {
-	//TODO Uncomment
-//	notNullValidation(name);
+	notNullValidation(name);
 	this.name=name;
 	this.seasons = new LinkedHashSet<>();
     }
@@ -176,5 +177,58 @@ public class Show {
 		    show.addSeason(Season.toSeason( (JSONObject) seasonJSON, show ) ) 
 	    );
 	return show;
+    }
+    
+    @Override
+    public String toString(){
+	String orderedSeasons="";
+	orderedSeasons = seasons!=null? seasons.stream().map((season) -> season+"\n").reduce(orderedSeasons, String::concat):null;
+	return "Show{[name:"+name+"][seasons:"+orderedSeasons+"]}";
+    }
+
+    public Integer getNumberOfEpisodeNumberDigits() {
+	log.trace("::getNumberOfEpisodeNumberDigits() - Start: ");
+	try {
+	    
+	    Season lastSeason=getLastSeason();
+	    
+	    //startsOnEpisode > 8x10^soeDigits-1 --> +1 digit
+	    Integer numberOfEpisodeNumberDigits= lastSeason.endsOnEpisode != null? (""+lastSeason.endsOnEpisode).length():
+		    ( (lastSeason.startsOnEpisode>8*Math.pow(10,(lastSeason.startsOnEpisode.intValue()+"").length()-1))? 
+			("0"+lastSeason.startsOnEpisode.intValue()).length():
+			(""+lastSeason.startsOnEpisode.intValue()).length());
+	    
+	    
+	    log.trace("::getNumberOfEpisodeNumberDigits() - Finish: ");
+	    return numberOfEpisodeNumberDigits;
+	    
+	} catch (Exception e) {
+	    throw new White_FFmpegClientException("Couln't obtain the number of digits that an episode of this season should have.", e);
+	}
+    }
+
+    private Season getLastSeason() {
+	log.trace("::getLastSeason() - Start: ");
+	try {
+	    
+	    Season lastSeason=null;
+	    Integer greatestSeasonNumber=0;
+	    for(Season season:seasons){
+		if(season.endsOnEpisode==null) return season;
+		if (season.number==null) throw new White_FFmpegClientException("There is a season without number. This shouldn't be possible");
+		Integer currentSeasonNumber=Integer.parseInt(season.number) ;
+		if(greatestSeasonNumber<currentSeasonNumber){
+		    greatestSeasonNumber=currentSeasonNumber;
+		    lastSeason=season;
+		}
+	    }
+	    
+	    log.trace("::getLastSeason() - Finish: ");
+	    return lastSeason;
+	    
+	    
+	} catch (Exception e) {
+	    throw new White_FFmpegClientException("Couln't get last season of the show due to an error.", e);
+	}
     }
 }

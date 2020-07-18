@@ -101,18 +101,9 @@ package org.white_sdev.white_ffmpegclient.service;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import javax.swing.JOptionPane;
 import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
 import org.white_sdev.white_ffmpegclient.model.bean.*;
 
@@ -124,109 +115,95 @@ import org.white_sdev.white_ffmpegclient.model.bean.*;
 @Slf4j
 public class EncoderService {
     
-    final String SHOWS_FILE_NAME="shows.json";
+    LinkedHashSet<Episode> currentEpisodes=new LinkedHashSet<>();
     
-    public String[] getEncodingCommand(Set<File> files) {
-	log.trace("::encode(parameter) - Start: ");
-	String[]cmdsArray={};
-	if (files == null) return cmdsArray;
+    public String[] getEncodingCommands(Set<File> files) {
+	log.trace("::getEncodingCommand(files) - Start: ");
+	    if (files == null) return null;
 	
 	try {
-	    List<String> cmds=new ArrayList<>();
 	    
-	    LinkedHashSet<Show> shows=getKnownShows();
-	    System.out.println(shows);
+	    LinkedHashSet<String> commands= new LinkedHashSet<>();
 	    
-	    for(File file:files){
+	    for(var file:files){
+		Episode episode=ShowsManager.getEpisode(file.getName());
+		if(episode==null){
+		    if(JOptionPane.showConfirmDialog(null, "It wasn't possible to identify one of the files as an episode of any of the known shows, do you want to continue scanning the files?")==JOptionPane.NO_OPTION){
+			break;
+		    }else{
+			continue;
+		    }
+		}
 		
+		episode.file=file;
+		String command=getEncodingCommand(episode);
+		episode.encodingCommand=command;
+		commands.add(command);
+		currentEpisodes.add(episode);
 	    }
 	    
 	    
+	    String[] cmdsArray=new String[commands.size()];
+	    commands.toArray(cmdsArray);
 	    
-	    log.trace("::encode(parameter) - Finish: ");
-	    cmds.toArray(cmdsArray);
+	    log.trace("::getEncodingCommand(files) - Finish: ");
 	    return cmdsArray;
 	    
 	} catch (Exception e) {
-	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+	    throw new White_FFmpegClientException("Impossible to generate command due to an unexpected internal error.", e);
 	}
     }
 
-    public void writeJSONStructure() {
-	Show onePiece=new Show("One Piece"){{
-	   addSeason(new Season("01", this, 1f, 61f));
-	   addSeason(new Season("02", this, 62f, 77f));
-	   addSeason(new Season("03", this, 78f, 92f));
-	   addSeason(new Season("04", this, 93f, 130f));
-	   addSeason(new Season("05", this, 131f, 143f));
-	   addSeason(new Season("06", this, 144f, 195f));
-	   addSeason(new Season("07", this, 196f, 228f));
-	   addSeason(new Season("08", this, 229f, 263f));
-	   addSeason(new Season("09", this, 264f, 336f));
-	   addSeason(new Season("10", this, 337f, 381f));
-	   addSeason(new Season("11", this, 382f, 407f));
-	   addSeason(new Season("12", this, 408f, 421f));
-	   addSeason(new Season("13", this, 422f, 458f));
-	   addSeason(new Season("14", this, 459f, 516f));
-	   addSeason(new Season("15", this, 517f, 578f));
-	   addSeason(new Season("16", this, 579f, 628f));
-	   addSeason(new Season("17", this, 629f, 746f));
-	   addSeason(new Season("18", this, 747f, 782f));
-	   addSeason(new Season("19", this, 783f, 877f));
-	   addSeason(new Season("20", this, 878f, 889f));
-	   addSeason(new Season("21", this, 890f));
-	}};
-	Show showDePrueba=new Show("Prueba"){{
-	   addSeason(new Season("01", this, 1f, 12f));
-	   addSeason(new Season("02", this, 13f));
-	}};
-	
-	try (FileWriter file = new FileWriter("shows.json")) {
- 
-            file.write(onePiece.toJSON().toJSONString());
-            file.write(showDePrueba.toJSON().toJSONString());
-            file.flush();
- 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private LinkedHashSet<Show> getKnownShows() {
-	log.trace("::getKnownShows() - Start: ");
+    private String getEncodingCommand(Episode episode) {
+	log.trace("::getEncodingCommand(episode) - Start: ");
+	if (episode == null) return null;
 	try {
 	    
-	    LinkedHashSet<Show> shows=readShowsJSONFile(SHOWS_FILE_NAME);
+	    /*
+	     * Expected output:
+	     * "ffmpeg -i \"[Erai-raws] One Piece - 837 [1080p][Multiple Subtitle].mkv\" -vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v 12M"
+	     *    + " -maxrate:v 15M -cq 24 -qmin 24 -qmax 24  -rc cbr -c:a aac -b:a 224k -map 0:v -map 0:a -map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text \"One Piece S19E55-0837-[NvEnc@24+slow][ffmpeg].mp4\""
+	     */
 	    
-	    log.trace("::getKnownShows() - Finish: ");
-	    return shows;
+	    String ENCODER="ffmpeg";
+	    String ENCODER_CONFIG="-vcodec h264_nvenc -pix_fmt yuv420p -preset slow";
+	    String encoderQuality="-b:v 12M -maxrate:v 15M -cq 24 -qmin 24 -qmax 24 -rc cbr";
+	    String ENCODER_AUDIO="-c:a aac -b:a 224k";
+	    
+	    String SUBTITLES_SPANISH="-map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text";
+	    String SUBTITLES_ENGLISH="-map 0:s:m:language:eng -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text";
+	    String SUBTITLES_NONE="-map 0:s -c:s mov_text";
+	    String SUBTITLES=	(EncoderConfigurations.selectedLanguage==EncoderConfigurations.Language.NONE? SUBTITLES_NONE:
+				 EncoderConfigurations.selectedLanguage==EncoderConfigurations.Language.ENGLISH? SUBTITLES_ENGLISH:
+				 SUBTITLES_SPANISH);
+	    
+	    String ENCODER_MAPPINGS="-map 0:v -map 0:a "+SUBTITLES;
+	    String VERBOSE="-[NvEnc@24+slow][ffmpeg]";
+	    
+	    String input="-i \""+episode.file.getAbsolutePath()+"\"";
+	    String output="\""+episode.file.getParent()+File.separator+episode.season.show.name+" S"+episode.season.number+"E"+episode.seasonEpisodeNumber+"-"+episode.absoluteEpisodeNumber+VERBOSE+"."+EncoderConfigurations.outputExtension+"\"";
+	    
+	    String cmd=ENCODER+" "+
+		    input+" "+
+		    ENCODER_CONFIG+" "+
+		    encoderQuality+" "+
+		    ENCODER_AUDIO+" "+
+		    ENCODER_MAPPINGS+" "+
+		    output;
+	    
+	    log.trace("::getEncodingCommand(episode) - Finish: ");
+	    return cmd;
 	    
 	} catch (Exception e) {
-	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+	    throw new White_FFmpegClientException("The encoding command is unobtainable.", e);
 	}
     }
 
-    public  LinkedHashSet<Show> readShowsJSONFile(String fileName) {
-	log.trace("::readShowsJSONFile(parameter) - Start: ");
-	
-	try (FileReader reader = new FileReader(fileName)){
+    
 
-	    JSONArray showsJSONArray = (JSONArray) new JSONParser().parse(reader);
-	    LinkedHashSet<Show> shows=new LinkedHashSet<>();
-	    showsJSONArray.forEach( showJSON -> 
-		    shows.add(Show.toShow( (JSONObject) showJSON ) ) 
-	    );
+    
 
-	    log.trace("::readShowsJSONFile(parameter) - Finish: ");
-	    return shows;
-
-	} catch (FileNotFoundException e) {
-	    throw new White_FFmpegClientException("File shows.json wasn't found. Imposible to read the shows from it.",e);
-	} catch (IOException | ParseException e) {
-	    throw new White_FFmpegClientException("An error occured when reading shows.json file. Imposible to read the shows from it.",e);
-	}
-	    
-    }
+    
     
     
     

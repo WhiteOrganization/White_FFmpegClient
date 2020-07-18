@@ -108,6 +108,7 @@ import org.white_sdev.white_ffmpegclient.view.MainJFrame;
  */
 @Slf4j
 public class White_FFmpegClient {
+    
 
     /**
      * Main method of the app. Requirement_Reference; This launches the Main Frame and concedes the control to it.
@@ -117,8 +118,21 @@ public class White_FFmpegClient {
      * @param args {@link Object} Arguments to read for the client (not currently supported)
      */
     public static void main(String[] args) {
-	log.trace("::main(args) - Start: ");
+	log.info("::main(args) - Lainching Application ");
 
+	try {
+
+	    launchMainFrame();
+	    log.trace("::main(args) - Finish: ");
+	    
+	    
+	} catch (Exception e) {
+	    log.debug("::main(args) - Exception: " + e);
+	    throw new RuntimeException("Impossible to initiate the Client due to an unknown internal error, please report this error.", e);
+	}
+    }
+    
+    private static void launchMainFrame(){
 	try {
 
 	    //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -143,11 +157,11 @@ public class White_FFmpegClient {
 		new MainJFrame().setVisible(true);
 	    });
 
-	    log.trace("::main(args) - Finish: ");
+	    log.trace("::launchMainFrame() - Finish: ");
 	    
 	    
 	} catch (Exception e) {
-	    log.debug("::main(args) - Exception: " + e);
+	    log.debug("::launchMainFrame() - Exception: " + e);
 	    throw new RuntimeException("Impossible to initiate the Client due to an unknown internal error, please report this error.", e);
 	}
     }
