@@ -165,7 +165,7 @@ public class EncoderService {
 	     *    + " -maxrate:v 15M -cq 24 -qmin 24 -qmax 24  -rc cbr -c:a aac -b:a 224k -map 0:v -map 0:a -map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text \"One Piece S19E55-0837-[NvEnc@24+slow][ffmpeg].mp4\""
 	     */
 	    
-	    String ENCODER="ffmpeg";
+	    String ENCODER=EncoderConfigurations.ffmpegPath==null?"ffmpeg":"\""+EncoderConfigurations.ffmpegPath+"\"";
 	    String ENCODER_CONFIG="-vcodec h264_nvenc -pix_fmt yuv420p -preset slow";
 	    String encoderQuality="-b:v 12M -maxrate:v 15M -cq 24 -qmin 24 -qmax 24 -rc cbr";
 	    String ENCODER_AUDIO="-c:a aac -b:a 224k";

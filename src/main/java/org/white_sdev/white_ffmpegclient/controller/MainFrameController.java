@@ -214,6 +214,24 @@ public class MainFrameController {
 	    JOptionPane.showMessageDialog(view,"An unexpected error has ocurred when trying to encode the files. ");
 	}
     }
+    
+    
+    public void showCommands() {
+	log.trace("::showCommands() - Start: ");
+	
+	try {
+	    
+	    launchCommandsExposer();
+	    
+	    log.trace("::showCommands() - Finish: ");
+	} catch (White_FFmpegClientException e) {
+	    log.error("An error ocurred when trying to generate the commands.", e);
+	    JOptionPane.showMessageDialog( null,"An error ocurred when trying to generate the commands. \n"+ e.getCauses() );
+	} catch (Exception e) {
+	    log.error("An error ocurred when trying to generate the commands.", e);
+	    JOptionPane.showMessageDialog(view,"An error ocurred when trying to generate the commands. ");
+	}
+    }
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="private">
@@ -377,6 +395,7 @@ public class MainFrameController {
 	    EncoderConfigurations.outputExtension=view.getExtension();
 	    EncoderConfigurations.includeSubtitles=view.getJCheckBoxIncludeSubs().isEnabled();
 	    EncoderConfigurations.selectedLanguage=(EncoderConfigurations.Language) view.jComboBoxDefaultLanguage.getSelectedItem();
+	    if(view.jCheckBoxCustomFFmpeg.isSelected()) EncoderConfigurations.ffmpegPath=view.jTextFieldFFmpegPath.getText();
 	    
 	    log.trace("::loadEncoderConfigurations() - Finish: ");
 	} catch (Exception e) {
@@ -386,22 +405,6 @@ public class MainFrameController {
 
     //</editor-fold>
 
-    public void showCommands() {
-	log.trace("::showCommands() - Start: ");
-	
-	try {
-	    
-	    launchCommandsExposer();
-	    
-	    log.trace("::showCommands() - Finish: ");
-	} catch (White_FFmpegClientException e) {
-	    log.error("An error ocurred when trying to generate the commands.", e);
-	    JOptionPane.showMessageDialog( null,"An error ocurred when trying to generate the commands. \n"+ e.getCauses() );
-	} catch (Exception e) {
-	    log.error("An error ocurred when trying to generate the commands.", e);
-	    JOptionPane.showMessageDialog(view,"An error ocurred when trying to generate the commands. ");
-	}
-    }
 
     
     public void launchCommandsExposer() {

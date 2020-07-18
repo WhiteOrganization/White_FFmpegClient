@@ -116,6 +116,8 @@ public class EncoderConfigurations {
     
     public static Language selectedLanguage=Language.SPANISH;
     
+    public static String ffmpegPath=null;
+    
     /**
      * Warning on modification. This enumeration is synchronized directly with the view
      * 
