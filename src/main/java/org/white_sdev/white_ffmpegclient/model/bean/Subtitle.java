@@ -1,6 +1,6 @@
 /*
- *  Filename:  EncoderConfigurations.java
- *  Creation Date:  Jul 18, 2020
+ *  Filename:  Subtitle.java
+ *  Creation Date:  Jul 19, 2020
  *  Purpose:   
  *  Author:    <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
  * 
@@ -96,36 +96,118 @@
  * 
  * Creative Commons may be contacted at creativecommons.org.
  */
-package org.white_sdev.white_ffmpegclient.service;
+package org.white_sdev.white_ffmpegclient.model.bean;
 
-//import lombok.extern.slf4j.Slf4j;
-
-
+import java.io.File;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
+import static org.white_sdev.white_validations.parameters.ParameterValidator.notNullValidation;
 
 /**
  * 
  * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
- * @since Jul 18, 2020
+ * @since Jul 19, 2020
  */
-//@Slf4j
-public class EncoderConfigurations {
+@Slf4j
+public class Subtitle {
     
-    public static String outputExtension="mp4";
-    
-    public static Boolean includeSubtitles=false;
-    
-    public static Language selectedLanguage=Language.SPANISH;
-    
-    public static String ffmpegPath=null;
     
     /**
-     * Warning on modification. This enumeration is synchronized directly with the view
-     * 
-     * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
-     * @since Jul 18, 2020
+     * EncoderConfigurations.Language and String Representation inside the ASS or SRT file name before the last dot https://bit.ly/2E0b5Pn https://bit.ly/3fWZiQ5
      */
-    public static enum Language{
-	SPANISH, ENGLISH, NONE
+    public static final LinkedHashMap<EncoderConfigurations.Language,String> SUPPORTED_LANGUAGES=new LinkedHashMap<>(){{
+	put(EncoderConfigurations.Language.SPANISH,"spa");
+	put(EncoderConfigurations.Language.ENGLISH,"eng");
+    }};
+    public static final LinkedHashMap<SubtitleFileExtension,String> SUPPORTED_SUBSTITLE_EXTENSIONS=new LinkedHashMap<>(){{
+	put(SubtitleFileExtension.SRT,"srt");
+	put(SubtitleFileExtension.ASS,"ass");
+    }};
+
+    public static enum SubtitleFileExtension{ SRT,ASS }
+    
+    public File file;
+    public Map.Entry<SubtitleFileExtension,String> fileExtension;
+    public Map.Entry<EncoderConfigurations.Language,String> language;
+    
+    /**
+     * Class Constructor.{Requirement_Reference}
+     * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
+     * @param fileExtension
+     * @since Jul 19, 2020
+     * @param file The parameter to create the object.
+     * @param language
+     * @throws IllegalArgumentException - if the argument provided is null.
+     */
+    public Subtitle(File file, Map.Entry<EncoderConfigurations.Language,String> language,Map.Entry<SubtitleFileExtension,String> fileExtension) {
+	log.trace("::Subtitle() - Start: ");
+	notNullValidation(new Object[]{file,language},"Impossible to create the object. The parameter can't be null.");
+	try{
+	    log.info("::Subtitle() - Creating Subtitle instance with fileName: "+file.getName());
+	    log.info("::Subtitle() - Creating Subtitle instance with fileExtension: "+fileExtension);
+	    
+	    this.file=file;
+	    this.language=language;
+	    this.fileExtension=fileExtension!=null?fileExtension:getSubtitleFileExtension(file);
+	    
+
+	    log.trace("::Subtitle() - Finish: ");
+	} catch (Exception e) {
+            throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
+        }
+    }
+    
+    public Subtitle(File file, Map.Entry<EncoderConfigurations.Language,String> language){
+	this(file,language,null);
+    }
+    
+    public Subtitle(){super();}
+    
+    public String getSubtitleLanguageCode(){
+	return language!=null?language.getValue():null;
+    }
+    
+    public static Map.Entry<SubtitleFileExtension, String> getSubtitleFileExtension(File file){
+	log.trace("::getSubtitleFileExtension(file) - Start: ");
+	if(file==null || file.toString().isBlank()) return null;
+	try{
+	    
+	    String fileExtension= (file.toString().split("\\."))[file.getName().split("\\.").length-1];
+	    log.info("::getSubtitleFileExtension(file) - calculated fileExtension: "+fileExtension);
+	    return getSupportedSubtitleExtensionFromExtension(fileExtension);
+	} catch (Exception e) {
+            throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
+        }
+	
+    }
+    
+    /**
+     * Obtains the extrapolated {@link #SUPPORTED_SUBSTITLE_EXTENSIONS}.  NA;
+     * From the provided {@link String} referencing the extension of a (intended) subtitle 
+     * {@link File} this method will answer back with one of the {@link #SUPPORTED_SUBSTITLE_EXTENSIONS} {@link Collection} from this class.
+     * 
+     * @author <a href='mailto:obed.vazquez@gmail.com'>Obed Vazquez</a>
+     * @since 2020-07-20
+     * @param extension {@link String} to perform the operation with.
+     * @return returned LinkedHashMap<SubtitleFileExtension, String>  value as the result of the operation.
+     * @throws IllegalArgumentException - if the provided parameter is null.
+     */
+    public static Map.Entry<SubtitleFileExtension, String> getSupportedSubtitleExtensionFromExtension(String extension) {
+	log.trace("::getSupportedSubtitleExtensionFromExtension(extension) - Start: ");
+	notNullValidation(extension,"The parameter can't be null.");
+	try{
+	    
+	    for (java.util.Map.Entry<SubtitleFileExtension, String> entry : SUPPORTED_SUBSTITLE_EXTENSIONS.entrySet()) 
+		if(entry.getValue().equals(extension))return entry; 
+	    log.trace("::getSupportedSubtitleExtensionFromExtension(extension) - Finish: ");
+	    return null;
+
+	} catch (Exception e) {
+            throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
+        }
     }
     
 }

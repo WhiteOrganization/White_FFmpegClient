@@ -98,14 +98,25 @@
  */
 package org.white_sdev.white_ffmpegclient.service;
 
+import org.white_sdev.white_ffmpegclient.model.bean.EncoderConfigurations;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.swing.JOptionPane;
 import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
 import org.white_sdev.white_ffmpegclient.model.bean.*;
+import static org.white_sdev.white_validations.parameters.ParameterValidator.notNullValidation;
 
 /**
  *
@@ -116,14 +127,46 @@ import org.white_sdev.white_ffmpegclient.model.bean.*;
 public class EncoderService {
     
     LinkedHashSet<Episode> currentEpisodes=new LinkedHashSet<>();
+    public final String BATCH_COMMANDS_FILE_NAME="encoding-commands.bat";
+    public final String encodingSubFolder="Encoded";
+    public String encodingSubFolderPath;
     
-    public String[] getEncodingCommands(Set<File> files) {
+    
+    public EncoderService() throws IOException{
+	encodingSubFolderPath="\""+new File(".").getCanonicalPath()+File.separator+encodingSubFolder+"\\"+"\"";
+    }
+    
+    public void encode(Set<File> files) {
+	log.trace("::encode(files) - Start: ");
+	notNullValidation(files,"Files provided cant be null, provide some files to encode.");
+	if (files == null) throw new IllegalArgumentException("The parameter can't be null.");
+	try {
+	    
+	    ArrayList<String> commands= getEncodingCommands(files,EncoderConfigurations.useSubfolder,EncoderConfigurations.outputExtension);
+	    //TODO Remove unused code
+//	    generateCommandsFile(commands);
+	    Files.write(Paths.get("./"+BATCH_COMMANDS_FILE_NAME), commands, StandardCharsets.UTF_8);
+	    executeBatchFile();
+	    
+	    
+	    log.trace("::encode(files) - Finish: ");
+	    
+	} catch (Exception e) {
+	    throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
+	}
+    }
+    
+    /*
+     *  Both Controller actions call this
+     */
+    public ArrayList<String> getEncodingCommands(Set<File> files,Boolean useSubfolder, String outputExtension) {
 	log.trace("::getEncodingCommand(files) - Start: ");
 	    if (files == null) return null;
 	
 	try {
 	    
 	    LinkedHashSet<String> commands= new LinkedHashSet<>();
+	    
 	    
 	    for(var file:files){
 		Episode episode=ShowsManager.getEpisode(file.getName());
@@ -136,25 +179,32 @@ public class EncoderService {
 		}
 		
 		episode.file=file;
-		String command=getEncodingCommand(episode);
+		String command=getEncodingCommand(episode,useSubfolder,outputExtension,EncoderConfigurations.addExternalSubtitles);
 		episode.encodingCommand=command;
 		commands.add(command);
 		currentEpisodes.add(episode);
 	    }
 	    
 	    
-	    String[] cmdsArray=new String[commands.size()];
-	    commands.toArray(cmdsArray);
-	    
 	    log.trace("::getEncodingCommand(files) - Finish: ");
-	    return cmdsArray;
+	    return getFileLinesFromCommands(commands);
 	    
 	} catch (Exception e) {
 	    throw new White_FFmpegClientException("Impossible to generate command due to an unexpected internal error.", e);
 	}
     }
 
-    private String getEncodingCommand(Episode episode) {
+    /**
+     * Core method of the library.
+     * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
+     * @since 2020-07-21
+     * @param episode
+     * @param useSubfolder
+     * @param outputExtension
+     * @param addExternalSubtitles
+     * @return 
+     */
+    public String getEncodingCommand(Episode episode,Boolean useSubfolder, String outputExtension,Boolean addExternalSubtitles) {
 	log.trace("::getEncodingCommand(episode) - Start: ");
 	if (episode == null) return null;
 	try {
@@ -164,27 +214,48 @@ public class EncoderService {
 	     * "ffmpeg -i \"[Erai-raws] One Piece - 837 [1080p][Multiple Subtitle].mkv\" -vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v 12M"
 	     *    + " -maxrate:v 15M -cq 24 -qmin 24 -qmax 24  -rc cbr -c:a aac -b:a 224k -map 0:v -map 0:a -map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text \"One Piece S19E55-0837-[NvEnc@24+slow][ffmpeg].mp4\""
 	     */
+	    	    
+	    if (useSubfolder) encodingSubFolderPath="\""+episode.file.getParent()+File.separator+encodingSubFolder+"\\"+"\"";
 	    
+	    //Simulated Constants ought to be parameterized in later versions
 	    String ENCODER=EncoderConfigurations.ffmpegPath==null?"ffmpeg":"\""+EncoderConfigurations.ffmpegPath+"\"";
 	    String ENCODER_CONFIG="-vcodec h264_nvenc -pix_fmt yuv420p -preset slow";
 	    String encoderQuality="-b:v 12M -maxrate:v 15M -cq 24 -qmin 24 -qmax 24 -rc cbr";
 	    String ENCODER_AUDIO="-c:a aac -b:a 224k";
 	    
+	    //Current support for Spanish and English only
 	    String SUBTITLES_SPANISH="-map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text";
-	    String SUBTITLES_ENGLISH="-map 0:s:m:language:eng -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text";
+	    String SUBTITLES_ENGLISH="-map 0:s:m:language:eng -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:spa -c:s mov_text";
 	    String SUBTITLES_NONE="-map 0:s -c:s mov_text";
 	    String SUBTITLES=	(EncoderConfigurations.selectedLanguage==EncoderConfigurations.Language.NONE? SUBTITLES_NONE:
 				 EncoderConfigurations.selectedLanguage==EncoderConfigurations.Language.ENGLISH? SUBTITLES_ENGLISH:
 				 SUBTITLES_SPANISH);
 	    
+	    log.debug("::getEncodingCommand(episode) addExternalSubtitles:" + addExternalSubtitles);
+	    Subtitle externalSubtitle=null;
+	    if(addExternalSubtitles){
+		externalSubtitle=getSubtitle(episode);
+		if(externalSubtitle!=null ||  JOptionPane.showConfirmDialog(null, 
+			"it was impossible to find the subtitles file for episode file:"+ episode.file.getName()+ ".\n "
+				+ "Do want to skip it? (If NO the enire process will be canceled) ", "WARNING", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
+		    SUBTITLES="-map 1:s:0 -c:s mov_text -metadata:s:s:0 language="+externalSubtitle.getSubtitleLanguageCode()+" -disposition:s:s:0 default "+SUBTITLES_NONE;
+		}else{
+		    return null;
+		}
+	    }
+	    
 	    String ENCODER_MAPPINGS="-map 0:v -map 0:a "+SUBTITLES;
 	    String VERBOSE="-[NvEnc@24+slow][ffmpeg]";
 	    
 	    String input="-i \""+episode.file.getAbsolutePath()+"\"";
-	    String output="\""+episode.file.getParent()+File.separator+episode.season.show.name+" S"+episode.season.number+"E"+episode.seasonEpisodeNumber+"-"+episode.absoluteEpisodeNumber+VERBOSE+"."+EncoderConfigurations.outputExtension+"\"";
+	    String externalSubs=addExternalSubtitles?"-i \""+externalSubtitle.file.getAbsolutePath()+"\"":"";
+	    String output="\""+episode.file.getParent()+File.separator+(useSubfolder?encodingSubFolder+"\\":"")+
+		    episode.season.show.name+" S"+episode.season.number+"E"+episode.seasonEpisodeNumber+"-"+episode.absoluteEpisodeNumber+
+		    VERBOSE+"."+outputExtension+"\"";
 	    
 	    String cmd=ENCODER+" "+
 		    input+" "+
+		    (addExternalSubtitles?externalSubs+" ":"")+
 		    ENCODER_CONFIG+" "+
 		    encoderQuality+" "+
 		    ENCODER_AUDIO+" "+
@@ -198,6 +269,136 @@ public class EncoderService {
 	    throw new White_FFmpegClientException("The encoding command is unobtainable.", e);
 	}
     }
+
+
+    //TODO Delete unused ater testing.
+//    private void generateCommandsFile(LinkedHashSet<String> commands) {
+//	log.trace("::generateCommandsFile(commands) - Start: ");
+//	try {
+//	    String localPath="./";
+//	    
+////	    FileOutputStream fos=new FileOutputStream(new File(localPath+BATCH_COMMANDS_FILE_NAME));
+////	    FileWriter myWriter = new FileWriter(localPath+BATCH_COMMANDS_FILE_NAME);
+//	    
+//	    Files.write(Paths.get("./"+BATCH_COMMANDS_FILE_NAME), getFileLinesFromCommands(commands), StandardCharsets.UTF_8);
+//	    //Files.write(file, lines, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+//	    
+////	    
+////	    myWriter.write("Files in Java might be tricky, but it is fun enough!");
+////	    myWriter.close();
+//	    log.trace("::generateCommandsFile(commands) - Finish: ");
+//	    
+//	} catch (Exception e) {
+//	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+//	}
+//    }
+//        
+    
+    /**
+     * create a {@link List} of {@link File} lines from the given commands.  NA;
+     * The given commands are treated as simple file lines and the method simply generates the common generic structure for a .bat file. 
+     * 
+     * @author <a href='mailto:obed.vazquez@gmail.com'>Obed Vazquez</a>
+     * @since 2020-07-18
+     * @param commands {@link Set} of commands (lines for the file) to prepare to write.
+     * @return returned ArrayList as a prepared collection of lines to write to your file
+     * @throws IllegalArgumentException - if the provided parameter is null.
+     */
+    public ArrayList<String> getFileLinesFromCommands(Set<String> commands) {
+	log.trace("::getFileLinesFromCommands(commands) - Start: ");
+	notNullValidation(commands,"The parameter can't be null.");
+	try{
+	    
+	    ArrayList<String> lines=new ArrayList<>();
+//	    lines.add("@echo off");
+	    if(EncoderConfigurations.useSubfolder) lines.add("MKDIR "+encodingSubFolderPath);
+	    for(String command:commands)
+		lines.add(command);
+	    lines.add("pause");
+
+	    log.trace("::getFileLinesFromCommands(commands) - Finish: ");
+	    return lines;
+	    
+	} catch (Exception e) {
+	    log.debug("::getFileLinesFromCommands(commands) - Exception: "+e);
+            throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
+        }
+    }
+
+    private void executeBatchFile() {
+	log.trace("::executeBatchFile() - Start: ");
+	
+	try {
+	    
+	    String localPath=new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().getPath()+"\\";
+	    String command="start "+"\"\" "+"\""+localPath+BATCH_COMMANDS_FILE_NAME+"\"";
+	    log.info("::executeBatchFile() Command: "+command);
+	    java.lang.Process process=Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", command});
+	    
+	    
+	    log.trace("::executeBatchFile() - Finish: ");
+	    
+	} catch (Exception e) {
+	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+	}
+    }
+
+    public Subtitle getSubtitle(Episode episode) {
+	log.trace("::getSubtitleLanguage(episode) - Start: ");
+	if (episode == null) return null;
+	try {
+	    
+	    for (java.util.Map.Entry<EncoderConfigurations.Language, String> entry : Subtitle.SUPPORTED_LANGUAGES.entrySet()) {
+		String languageCode = entry.getValue(); //String Representation in a filename
+		String fileNameNoExtension=getNameWithoutExtension(episode.file.getPath());
+		
+		//Iterates on SUPPORTED_SUBSTITLE_EXTENSIONS {ASS SRT}
+		for(Map.Entry<Subtitle.SubtitleFileExtension,String> subtitleExtension:Subtitle.SUPPORTED_SUBSTITLE_EXTENSIONS.entrySet()){
+		    String subsFileNameToLookFor= fileNameNoExtension + "." + languageCode + "." + subtitleExtension.getValue();
+		    File foundSubtitlesFile=null;
+		    log.info("::getSubtitleLanguage(episode) - Looking for subtitle: "+subsFileNameToLookFor);
+		    if(new File(subsFileNameToLookFor).exists())foundSubtitlesFile=new File(subsFileNameToLookFor);
+		    //TODO Eliminate log and brackets
+		    if(foundSubtitlesFile!=null){ log.info("::getSubtitleLanguage(episode) - Creating Sub with file: "+foundSubtitlesFile.getName()); return new Subtitle(foundSubtitlesFile,entry); }//if not found continue
+		    else{
+			log.info("::getSubtitleLanguage(episode) - Subtitle file doesn't exist: ");
+		    }
+		}
+	    }
+	    
+	    log.trace("::getSubtitleLanguage(episode) - Finish: ");
+	    return null;
+	    
+	} catch (Exception e) {
+	    throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
+	}
+    }
+
+    private String getNameWithoutExtension(String fileName) {
+	log.trace("::getNameWithoutExtension(name) - Start: "+fileName);
+	if (fileName == null) return null;
+	try {
+	    
+	    var nameSections= fileName.split("\\.");
+	    if(nameSections==null || nameSections.length<2) throw new White_FFmpegClientException("Impossible to remove the extension of the file: \""+fileName+"\" - it can't be splited.");
+	    if(nameSections.length>3) log.warn("::getSubtitleLanguage(episode) : The file has dots (.) in its name. Trying to extract extension file");
+	    
+	    String noExtensionFileName="";
+	    for(int i=0;i<nameSections.length-1;i++){// lenght-1 = (ignore the last element)
+		String nameSection=nameSections[i];
+		noExtensionFileName+=nameSection;
+	    }
+	    
+	    log.trace("::getNameWithoutExtension(name) - Finish: ");
+	    return noExtensionFileName;
+	    
+	} catch (Exception e) {
+	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+	}
+    }
+
+
+    
 
     
 

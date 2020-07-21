@@ -100,7 +100,7 @@
                               <Component id="jCheckBoxCustomFFmpeg" min="-2" max="-2" attributes="0"/>
                               <EmptySpace type="unrelated" max="-2" attributes="0"/>
                               <Component id="jPanelFFmpegPath" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="32767" attributes="0"/>
+                              <EmptySpace pref="74" max="32767" attributes="0"/>
                               <Component id="jButtonSelector" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
@@ -227,7 +227,7 @@
         </Container>
         <Component class="javax.swing.JButton" name="jButtonEncode">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Encoding Episodes"/>
+            <Property name="text" type="java.lang.String" value="Encode Episodes"/>
             <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
@@ -257,6 +257,8 @@
                       <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="jComboBoxDefaultLanguage" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="jCheckBoxEncodeToSubfolder" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
                   </Group>
               </Group>
@@ -271,6 +273,7 @@
                           <Component id="jCheckBoxIncludeSubs" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jComboBoxDefaultLanguage" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="jCheckBoxEncodeToSubfolder" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="32767" attributes="0"/>
                   </Group>
@@ -292,8 +295,10 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Add subtitles found in the same file folder"/>
                 <Property name="toolTipText" type="java.lang.String" value="subs files must have the same name before the first dot (.) -&gt; myFile.mkv  :::  myFile.eng.mkv"/>
-                <Property name="enabled" type="boolean" value="false"/>
               </Properties>
+              <AuxValues>
+                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
+              </AuxValues>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel2">
               <Properties>
@@ -308,6 +313,15 @@
               </Properties>
               <AuxValues>
                 <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;EncoderConfigurations.Language&gt;"/>
+                <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
+              </AuxValues>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="jCheckBoxEncodeToSubfolder">
+              <Properties>
+                <Property name="selected" type="boolean" value="true"/>
+                <Property name="text" type="java.lang.String" value="Save encoded files into a sub-folder"/>
+              </Properties>
+              <AuxValues>
                 <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="1"/>
               </AuxValues>
             </Component>

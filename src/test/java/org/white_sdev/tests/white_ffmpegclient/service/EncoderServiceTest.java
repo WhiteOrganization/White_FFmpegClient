@@ -99,6 +99,7 @@
 package org.white_sdev.tests.white_ffmpegclient.service;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -116,7 +117,7 @@ public class EncoderServiceTest {
      * Test of getEncodingCommands method, of class EncoderService.
      */
     @Test
-    public void testGetEncodingCommand() {
+    public void testGetEncodingCommand() throws Exception {
 	log.trace("::testGetEncodingCommand() - Start:");
 	try {
 
@@ -126,11 +127,11 @@ public class EncoderServiceTest {
 	    File file=new File(fileName);
 	    EncoderService encoder=new EncoderService();
 	    LinkedHashSet<File> files=new LinkedHashSet<>(){{add(file);}};
-	    String[] cmmds=encoder.getEncodingCommands(files);
-	    String result=cmmds[0];
+	    ArrayList<String> cmmds=encoder.getEncodingCommands(files,false,"mp4");
 	    System.out.println("expected: "+expected);
-	    System.out.println("result  : "+result);
-	    assert(expected.equals( result ));
+	    System.out.println("result  : "+cmmds.get(1));
+	    
+	    assert(cmmds.get(1).equals(expected));
 	    
 	    
 	    

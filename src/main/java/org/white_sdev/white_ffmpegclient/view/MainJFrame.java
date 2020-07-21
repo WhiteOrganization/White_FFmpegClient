@@ -107,7 +107,7 @@ import javax.swing.JTable;
 import lombok.extern.slf4j.Slf4j;
 import org.white_sdev.white_ffmpegclient.controller.MainFrameController;
 import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
-import org.white_sdev.white_ffmpegclient.service.EncoderConfigurations;
+import org.white_sdev.white_ffmpegclient.model.bean.EncoderConfigurations;
 
 /**
  *
@@ -155,6 +155,7 @@ public class MainJFrame extends javax.swing.JFrame {
         jCheckBoxIncludeSubs = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
         jComboBoxDefaultLanguage = new javax.swing.JComboBox<>();
+        jCheckBoxEncodeToSubfolder = new javax.swing.JCheckBox();
         jButtonCommands = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -239,7 +240,7 @@ public class MainJFrame extends javax.swing.JFrame {
                         .addComponent(jCheckBoxCustomFFmpeg)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jPanelFFmpegPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 74, Short.MAX_VALUE)
                         .addComponent(jButtonSelector)))
                 .addContainerGap())
         );
@@ -256,7 +257,7 @@ public class MainJFrame extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jButtonEncode.setText("Encoding Episodes");
+        jButtonEncode.setText("Encode Episodes");
         jButtonEncode.setEnabled(false);
         jButtonEncode.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -272,11 +273,13 @@ public class MainJFrame extends javax.swing.JFrame {
 
         jCheckBoxIncludeSubs.setText("Add subtitles found in the same file folder");
         jCheckBoxIncludeSubs.setToolTipText("subs files must have the same name before the first dot (.) -> myFile.mkv  :::  myFile.eng.mkv");
-        jCheckBoxIncludeSubs.setEnabled(false);
 
         jLabel2.setText("Defaulted Language:");
 
         jComboBoxDefaultLanguage.setModel(new DefaultComboBoxModel<>(EncoderConfigurations.Language.values()));
+
+        jCheckBoxEncodeToSubfolder.setSelected(true);
+        jCheckBoxEncodeToSubfolder.setText("Save encoded files into a sub-folder");
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -293,6 +296,8 @@ public class MainJFrame extends javax.swing.JFrame {
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jComboBoxDefaultLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jCheckBoxEncodeToSubfolder)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
@@ -304,7 +309,8 @@ public class MainJFrame extends javax.swing.JFrame {
                     .addComponent(jLabel1)
                     .addComponent(jCheckBoxIncludeSubs)
                     .addComponent(jLabel2)
-                    .addComponent(jComboBoxDefaultLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jComboBoxDefaultLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jCheckBoxEncodeToSubfolder))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -418,7 +424,8 @@ public class MainJFrame extends javax.swing.JFrame {
     private javax.swing.JButton jButtonEncode;
     private javax.swing.JButton jButtonSelector;
     public javax.swing.JCheckBox jCheckBoxCustomFFmpeg;
-    private javax.swing.JCheckBox jCheckBoxIncludeSubs;
+    public javax.swing.JCheckBox jCheckBoxEncodeToSubfolder;
+    public javax.swing.JCheckBox jCheckBoxIncludeSubs;
     public javax.swing.JComboBox<EncoderConfigurations.Language> jComboBoxDefaultLanguage;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

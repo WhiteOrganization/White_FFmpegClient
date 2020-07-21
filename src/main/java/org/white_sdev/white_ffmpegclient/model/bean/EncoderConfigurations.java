@@ -1,6 +1,6 @@
 /*
- *  Filename:  ShowsManager.java
- *  Creation Date:  Jul 17, 2020
+ *  Filename:  EncoderConfigurations.java
+ *  Creation Date:  Jul 18, 2020
  *  Purpose:   
  *  Author:    <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
  * 
@@ -96,230 +96,38 @@
  * 
  * Creative Commons may be contacted at creativecommons.org.
  */
-package org.white_sdev.white_ffmpegclient.service;
+package org.white_sdev.white_ffmpegclient.model.bean;
 
-import lombok.extern.slf4j.Slf4j;
+//import lombok.extern.slf4j.Slf4j;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.LinkedHashSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.swing.JOptionPane;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
-import org.white_sdev.white_ffmpegclient.model.bean.Episode;
-import org.white_sdev.white_ffmpegclient.model.bean.Season;
-import org.white_sdev.white_ffmpegclient.model.bean.Show;
 
 
 /**
  * 
  * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
- * @since Jul 17, 2020
+ * @since Jul 18, 2020
  */
-@Slf4j
-public class ShowsManager {
+//@Slf4j
+public class EncoderConfigurations {
     
+    public static String outputExtension="mp4";
     
-    final static String SHOWS_FILE_NAME="shows.json";
-    final static String INFO_WEBSITE="https://github.com/white-sdev/White_FFmpegClient";
-
-    final static String SEASON_REGEX="S\\d[\\d]+";
-    final static String SEASON_EPISODE_REGEX="E[\\d]+";
-    final static String ABSOLUTE_EPISODE_REGEX="[\\s\\-][\\d]+[\\s\\-]";
+    public static Boolean addExternalSubtitles=false;
     
-    public static LinkedHashSet<Show> getKnownShows() {
-	log.trace("::getKnownShows() - Start: ");
-	try {
-	    
-	    LinkedHashSet<Show> shows=null;
-	    try{  shows=readShowsJSONFile(SHOWS_FILE_NAME);  }catch(White_FFmpegClientException e){ }
-	    
-	    if( shows ==null || shows.size()<1){
-		if(JOptionPane.showConfirmDialog(null, "Shows file "+SHOWS_FILE_NAME+" not found, using default list of initial shows, "
-			+ "you can provide this file within the app executable (JAR) path to ensure your shows are detected.\n "
-			    +"Do you wish to have a sample file for you to edit it and add your shows?.\n"
-				    + "More information: "+INFO_WEBSITE+"", "Create Sample File?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
-		    writeSampleJSONStructure();
-		}
-		shows=new LinkedHashSet<Show>(){{
-		    
-		    javax.swing.JOptionPane.showMessageDialog(null, "Shows file "+SHOWS_FILE_NAME+
-			    " not found, using default list of initial shows, please this file along with the app executable (JAR) to ensure your shows are detected.\n "
-				    + "More information: "+INFO_WEBSITE+"",
-			    "Error",
-			    javax.swing.JOptionPane.WARNING_MESSAGE );
-		    
-		    add(getObsoleteOnePiece());
-		}};
-	    }
-	    
-	    log.trace("::getKnownShows() - Finish: ");
-	    return shows;
-	    
-	} catch (Exception e) {
-	    throw new White_FFmpegClientException("Impossible to obtain shows due to an unknown internal error.", e);
-	}
+    public static Language selectedLanguage=Language.SPANISH;
+    
+    public static String ffmpegPath=null;
+    
+    public static Boolean useSubfolder=true;
+    
+    /**
+     * Warning on modification. This enumeration is synchronized directly with the view
+     * 
+     * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
+     * @since Jul 18, 2020
+     */
+    public static enum Language{
+	SPANISH, ENGLISH, NONE
     }
-    
-    public static LinkedHashSet<Show> readShowsJSONFile(String fileName) {
-	log.trace("::readShowsJSONFile(parameter) - Start: ");
-	
-	try (FileReader reader = new FileReader(fileName)){
-
-	    JSONArray showsJSONArray = (JSONArray) new JSONParser().parse(reader);
-	    LinkedHashSet<Show> shows=new LinkedHashSet<>();
-	    showsJSONArray.forEach( showJSON -> 
-		    shows.add(Show.toShow( (JSONObject) showJSON ) ) 
-	    );
-
-	    log.trace("::readShowsJSONFile(parameter) - Finish: ");
-	    return shows;
-
-	} catch (FileNotFoundException e) {
-	    throw new White_FFmpegClientException("File shows.json wasn't found. Imposible to read the shows from it.",e);
-	} catch (IOException | ParseException e) {
-	    throw new White_FFmpegClientException("An error occured when reading shows.json file. Imposible to read the shows from it.",e);
-	}
-	    
-    }
-    
-    public static void writeSampleJSONStructure() {
-	Show onePiece=getObsoleteOnePiece();
-	Show showDePrueba=new Show("Prueba"){{
-	   addSeason(new Season("01", this, 1f, 12f));
-	   addSeason(new Season("02", this, 13f));
-	}};
-	
-	try (FileWriter file = new FileWriter("shows.json")) {
-	    
-	    JSONArray showsJSONArray= new JSONArray(){{
-		add(onePiece.toJSON());
-		add(showDePrueba.toJSON());
-	    }};
-	    
-            file.write(showsJSONArray.toJSONString());
-            file.flush();
- 
-        } catch (IOException e) {
-            throw new White_FFmpegClientException("An error occured when writting the "+SHOWS_FILE_NAME+" file. Imposible to write the shows.",e);
-        } catch (Exception e){
-            throw new White_FFmpegClientException("Unexpected error occured when writting the "+SHOWS_FILE_NAME+" file.",e);
-	}
-    }
-    
-    public static Show getObsoleteOnePiece(){
-	return new Show("One Piece"){{
-	   addSeason(new Season("01", this, 1f, 61f));
-	   addSeason(new Season("02", this, 62f, 77f));
-	   addSeason(new Season("03", this, 78f, 92f));
-	   addSeason(new Season("04", this, 93f, 130f));
-	   addSeason(new Season("05", this, 131f, 143f));
-	   addSeason(new Season("06", this, 144f, 195f));
-	   addSeason(new Season("07", this, 196f, 228f));
-	   addSeason(new Season("08", this, 229f, 263f));
-	   addSeason(new Season("09", this, 264f, 336f));
-	   addSeason(new Season("10", this, 337f, 381f));
-	   addSeason(new Season("11", this, 382f, 407f));
-	   addSeason(new Season("12", this, 408f, 421f));
-	   addSeason(new Season("13", this, 422f, 458f));
-	   addSeason(new Season("14", this, 459f, 516f));
-	   addSeason(new Season("15", this, 517f, 578f));
-	   addSeason(new Season("16", this, 579f, 628f));
-	   addSeason(new Season("17", this, 629f, 746f));
-	   addSeason(new Season("18", this, 747f, 782f));
-	   addSeason(new Season("19", this, 783f, 877f));
-	   addSeason(new Season("20", this, 878f, 889f));
-	   addSeason(new Season("21", this, 890f));
-	}};
-    }
-    
-    public static Episode getEpisode(String fileName) {
-	log.trace("::getEpisode(fileName) - Start: ");
-	if (fileName == null) return null;
-	try {
-	    
-	    
-	    LinkedHashSet<Show> shows=ShowsManager.getKnownShows();
-	    log.debug("::getEpisode(files) - Shows: {}",shows);
-	    for(Show show:shows){
-		if( fileName.contains(show.name)){
-		    
-		    
-		    String seasonEpisodeNumberString=substringRegex(fileName,SEASON_EPISODE_REGEX);
-		    //obtains the number with spaces then trims it then formats it for the specific show.
-		    Integer digits=show.getNumberOfEpisodeNumberDigits();
-		    String absoluteEpisodeNumberString=String.format("%0"+digits+"d", Integer.parseInt( substringRegex(fileName,ABSOLUTE_EPISODE_REGEX).trim()) );
-		    String fileSeasonNumberString=substringRegex(fileName,SEASON_REGEX);
-		    //convert to integer
-		    Integer fileSeasonNumber=null;
-		    try{    fileSeasonNumber=fileSeasonNumberString!=null?Integer.parseInt(fileSeasonNumberString):null;  }catch(NumberFormatException e){}
-		    
-		    
-		    
-		    if(seasonEpisodeNumberString==null && absoluteEpisodeNumberString==null) 
-			throw new White_FFmpegClientException("Unattainable episode number. The algorithm couln't obtain the episode number from the file name.");
-		    
-		    //TODO ya se tiene el season number ¬¬... puede evitarse la iteracion?
-		    for(Season season:show.getSeasons()){
-			if (fileSeasonNumber!=null){
-			    if(Integer.parseInt(season.number)==fileSeasonNumber )
-				return new Episode(seasonEpisodeNumberString, absoluteEpisodeNumberString, season);
-			}else{
-			    if(absoluteEpisodeNumberString!=null && Float.parseFloat(absoluteEpisodeNumberString)>season.startsOnEpisode)
-				if(season.endsOnEpisode==null || Float.parseFloat(absoluteEpisodeNumberString)<season.endsOnEpisode)
-				    return new Episode(seasonEpisodeNumberString, absoluteEpisodeNumberString, season);
-			}
-		    }
-		    
-		}
-	    }
-	    
-	    log.trace("::getEpisode(fileName) - Finish: ");
-	    return null;
-	    
-	} catch (Exception e) {
-	    throw new White_FFmpegClientException("Impossible to obtain the Episode from file name due to an error.", e);
-	}
-    }
-    
-    
-    public static String substringRegex(String string, String regex) {
-	log.trace("::matchRegex(fileName, regex) - Start: ");
-	if (string == null || regex==null) return null;
-	try {
-	    
-	    Matcher matcher = Pattern.compile(regex).matcher(string);
-	    String match=matcher.find()?matcher.group(0):null;
-	    
-	    log.trace("::matchRegex(fileName, regex) - Finish: ");
-	    return match;
-	    
-	} catch (Exception e) {
-	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
-	}
-    }
-
-    public static Float getRegexFloatFrom(String fileName, String regex) {
-	log.trace("::getRegexFrom(fileName, regex) - Start: ");
-	if (fileName == null || regex==null) return null;
-	try {
-	    String numberString=substringRegex(fileName,regex);
-	    Float number=null;
-	    try{    number=numberString!=null?Float.parseFloat(numberString):null;  }catch(NumberFormatException e){}
-	    log.trace("::getRegexFrom(fileName, regex) - Finish: ");
-	    return number;
-	    
-	} catch (Exception e) {
-	    throw new White_FFmpegClientException("Impossible to get number from filename due to an error.", e);
-	}
-    }
-    
     
 }
