@@ -134,12 +134,26 @@ public class EncoderServiceTest {
 	    assert(cmmds.get(1).equals(expected));
 	    
 	    
+	    fileName = "F:\\Files\\Media\\Video\\Encoding\\Juego de Tronos S01E01 - [4K][claucha75][dual].mkv";
+	    expected="ffmpeg -i \"F:\\Files\\Media\\Video\\Encoding\\Juego de Tronos S01E01 - [4K][claucha75][dual].mkv\" -vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v 12M -maxrate:v 15M -cq 24 -qmin 24 -qmax 24 -rc cbr -c:a aac -b:a 224k -map 0:v -map 0:a -map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text \"F:\\Files\\Media\\Video\\Encoding\\Juego de Tronos S01E01-[NvEnc@24+slow][ffmpeg].mp4\"";
+	    
+	    File file2=new File(fileName);
+	    encoder=new EncoderService();
+	    files=new LinkedHashSet<>(){{add(file2);}};
+	    cmmds=encoder.getEncodingCommands(files,false,"mp4");
+	    System.out.println("expected: "+expected);
+	    System.out.println("result  : "+cmmds.get(1));
+	    
+	    assert(cmmds.get(1).equals(expected));
+	    
+	    
 	    
 	    
 	    log.trace("::testGetEncodingCommand() - Finish:");
 	    
 	} catch (White_FFmpegClientException e) {
-	    log.error("::testGetEncodingCommand(): An error ocurred when trying to launch the terminal to show the files encoding status.\n", e.getCauses());
+	    log.error("::testGetEncodingCommand(): An error ocurred when trying to launch the terminal to show the files encoding status.\n", e);
+	    System.out.println(e);
 	    throw e;
 	} catch (Exception e) {
 	    log.error("::testGetEncodingCommand(): Exception ocurred", e);

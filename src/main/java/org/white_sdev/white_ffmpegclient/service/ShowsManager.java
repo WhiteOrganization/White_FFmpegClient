@@ -253,23 +253,19 @@ public class ShowsManager {
 		    
 		    
 		    String seasonEpisodeNumberString=substringRegex(fileName,SEASON_EPISODE_REGEX);
+		    if(seasonEpisodeNumberString!=null)seasonEpisodeNumberString=seasonEpisodeNumberString.substring(1);
 		    //obtains the number with spaces then trims it then formats it for the specific show.
 		    Integer digits=show.getNumberOfEpisodeNumberDigits();
-		    String absoluteEpisodeNumberString=String.format("%0"+digits+"d", Integer.parseInt( substringRegex(fileName,ABSOLUTE_EPISODE_REGEX).trim()) );
+		    String absoluteEpisodeNumberStringFromFile=substringRegex(fileName,ABSOLUTE_EPISODE_REGEX);
+		    String absoluteEpisodeNumberString="";
+		    if(absoluteEpisodeNumberStringFromFile!=null && !absoluteEpisodeNumberStringFromFile.isBlank())
+			absoluteEpisodeNumberString=String.format("%0"+digits+"d", Integer.parseInt( absoluteEpisodeNumberStringFromFile.trim()) );
 		    String fileSeasonNumberString=substringRegex(fileName,SEASON_REGEX);
-		    //convert to integer
-		    Integer fileSeasonNumber=null;
-		    try{    fileSeasonNumber=fileSeasonNumberString!=null?Integer.parseInt(fileSeasonNumberString):null;  }catch(NumberFormatException e){}
+		    if(fileSeasonNumberString!=null)fileSeasonNumberString=fileSeasonNumberString.substring(1);
 		    
-		    
-		    
-		    if(seasonEpisodeNumberString==null && absoluteEpisodeNumberString==null) 
-			throw new White_FFmpegClientException("Unattainable episode number. The algorithm couln't obtain the episode number from the file name.");
-		    
-		    //TODO ya se tiene el season number ¬¬... puede evitarse la iteracion?
 		    for(Season season:show.getSeasons()){
-			if (fileSeasonNumber!=null){
-			    if(Integer.parseInt(season.number)==fileSeasonNumber )
+			if (fileSeasonNumberString!=null){
+			    if(season.number.equals(fileSeasonNumberString ))
 				return new Episode(seasonEpisodeNumberString, absoluteEpisodeNumberString, season);
 			}else{
 			    if(absoluteEpisodeNumberString!=null && Float.parseFloat(absoluteEpisodeNumberString)>season.startsOnEpisode)

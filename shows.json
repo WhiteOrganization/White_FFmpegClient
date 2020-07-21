@@ -26,6 +26,32 @@
 	
 },
 {
+	"name":"Juego de Tronos",
+	"seasons":[
+		{"number":"01","startsOnEpisode":1.0,"endsOnEpisode":10.0},
+		{"number":"02","startsOnEpisode":11.0,"endsOnEpisode":20.0},
+		{"number":"03","startsOnEpisode":21.0,"endsOnEpisode":30.0},
+		{"number":"04","startsOnEpisode":31.0,"endsOnEpisode":40.0},
+		{"number":"05","startsOnEpisode":41.0,"endsOnEpisode":50.0},
+		{"number":"06","startsOnEpisode":51.0,"endsOnEpisode":60.0},
+		{"number":"07","startsOnEpisode":61.0,"endsOnEpisode":67.0}
+		{"number":"07","startsOnEpisode":68.0,"endsOnEpisode":73.0}
+	]
+},
+{
+	"name":"Game of Thrones",
+	"seasons":[
+		{"number":"01","startsOnEpisode":1.0,"endsOnEpisode":10.0},
+		{"number":"02","startsOnEpisode":11.0,"endsOnEpisode":20.0},
+		{"number":"03","startsOnEpisode":21.0,"endsOnEpisode":30.0},
+		{"number":"04","startsOnEpisode":31.0,"endsOnEpisode":40.0},
+		{"number":"05","startsOnEpisode":41.0,"endsOnEpisode":50.0},
+		{"number":"06","startsOnEpisode":51.0,"endsOnEpisode":60.0},
+		{"number":"07","startsOnEpisode":61.0,"endsOnEpisode":67.0}
+		{"number":"07","startsOnEpisode":68.0,"endsOnEpisode":73.0}
+	]
+},
+{
 	"name":"Prueba",
 	"seasons":[
 		{"number":"01","startsOnEpisode":1.0,"endsOnEpisode":12.0},

@@ -143,8 +143,6 @@ public class EncoderService {
 	try {
 	    
 	    ArrayList<String> commands= getEncodingCommands(files,EncoderConfigurations.useSubfolder,EncoderConfigurations.outputExtension);
-	    //TODO Remove unused code
-//	    generateCommandsFile(commands);
 	    Files.write(Paths.get("./"+BATCH_COMMANDS_FILE_NAME), commands, StandardCharsets.UTF_8);
 	    executeBatchFile();
 	    
@@ -250,7 +248,8 @@ public class EncoderService {
 	    String input="-i \""+episode.file.getAbsolutePath()+"\"";
 	    String externalSubs=addExternalSubtitles?"-i \""+externalSubtitle.file.getAbsolutePath()+"\"":"";
 	    String output="\""+episode.file.getParent()+File.separator+(useSubfolder?encodingSubFolder+"\\":"")+
-		    episode.season.show.name+" S"+episode.season.number+"E"+episode.seasonEpisodeNumber+"-"+episode.absoluteEpisodeNumber+
+		    episode.season.show.name+" S"+episode.season.number+"E"+episode.seasonEpisodeNumber
+		    +((episode.absoluteEpisodeNumber!=null&&!episode.absoluteEpisodeNumber.isBlank())?("-"+episode.absoluteEpisodeNumber):"")+ //adds absolute number in case it has it
 		    VERBOSE+"."+outputExtension+"\"";
 	    
 	    String cmd=ENCODER+" "+
@@ -270,29 +269,6 @@ public class EncoderService {
 	}
     }
 
-
-    //TODO Delete unused ater testing.
-//    private void generateCommandsFile(LinkedHashSet<String> commands) {
-//	log.trace("::generateCommandsFile(commands) - Start: ");
-//	try {
-//	    String localPath="./";
-//	    
-////	    FileOutputStream fos=new FileOutputStream(new File(localPath+BATCH_COMMANDS_FILE_NAME));
-////	    FileWriter myWriter = new FileWriter(localPath+BATCH_COMMANDS_FILE_NAME);
-//	    
-//	    Files.write(Paths.get("./"+BATCH_COMMANDS_FILE_NAME), getFileLinesFromCommands(commands), StandardCharsets.UTF_8);
-//	    //Files.write(file, lines, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
-//	    
-////	    
-////	    myWriter.write("Files in Java might be tricky, but it is fun enough!");
-////	    myWriter.close();
-//	    log.trace("::generateCommandsFile(commands) - Finish: ");
-//	    
-//	} catch (Exception e) {
-//	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
-//	}
-//    }
-//        
     
     /**
      * create a {@link List} of {@link File} lines from the given commands.  NA;
@@ -358,11 +334,7 @@ public class EncoderService {
 		    File foundSubtitlesFile=null;
 		    log.info("::getSubtitleLanguage(episode) - Looking for subtitle: "+subsFileNameToLookFor);
 		    if(new File(subsFileNameToLookFor).exists())foundSubtitlesFile=new File(subsFileNameToLookFor);
-		    //TODO Eliminate log and brackets
-		    if(foundSubtitlesFile!=null){ log.info("::getSubtitleLanguage(episode) - Creating Sub with file: "+foundSubtitlesFile.getName()); return new Subtitle(foundSubtitlesFile,entry); }//if not found continue
-		    else{
-			log.info("::getSubtitleLanguage(episode) - Subtitle file doesn't exist: ");
-		    }
+		     return new Subtitle(foundSubtitlesFile,entry);//continue if not found 
 		}
 	    }
 	    

@@ -135,7 +135,7 @@ public class Episode {
     public Episode(String seasonEpisodeNumber,String absoluteEpisodeNumber,Season season) {
 	notNullValidation(absoluteEpisodeNumber);
 	notNullValidation(season);
-	//TODO Calculate seasonEpisodeNumber if it is null
+	
 	this.seasonEpisodeNumber=seasonEpisodeNumber!=null?seasonEpisodeNumber:calculateSeasonEpisodeNumber(absoluteEpisodeNumber,season);
 	this.absoluteEpisodeNumber=absoluteEpisodeNumber;
 	this.season=season;

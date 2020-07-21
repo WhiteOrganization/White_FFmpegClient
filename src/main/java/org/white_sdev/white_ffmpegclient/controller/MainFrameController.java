@@ -203,7 +203,6 @@ public class MainFrameController {
 
 	    loadEncoderConfigurations();
 	    encoderService.encode(reformat(jfiles));
-	    //TODO Link with a flag
 	    JOptionPane.showMessageDialog(view, "your files should be encoding to " + (EncoderConfigurations.useSubfolder ? "a subfolder" : "the same folder of the sources"));
 
 	    log.trace("::encode() - Finish: ");

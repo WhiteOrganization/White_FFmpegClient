@@ -98,10 +98,6 @@
  */
 package org.white_sdev.white_ffmpegclient;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import lombok.extern.slf4j.Slf4j;
 import org.white_sdev.white_ffmpegclient.view.MainJFrame;
 
@@ -169,45 +165,6 @@ public class White_FFmpegClient {
 	} catch (Exception e) {
 	    log.debug("::launchMainFrame() - Exception: " + e);
 	    throw new RuntimeException("Impossible to initiate the Client due to an unknown internal error, please report this error.", e);
-	}
-    }
-
-    private static void testRunBatch() {
-	log.info("::testRunBatch() - Start: ");
-	try {
-	    
-//	    C:\\Users\\White_PC\\Desktop\\White_FFmpegClient\\
-	    
-	    java.lang.Process process=Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", "start C:\\Users\\White_PC\\Desktop\\White_FFmpegClient\\encoding-commands.bat"});
-	    
-	    print(process.getInputStream());
-	    print(process.getErrorStream());
-	    
-	    process.getErrorStream();
-	    process.getOutputStream();
-	    
-	    log.info("::testRunBatch() - Finish: ");
-	    
-	} catch (Exception e) {
-	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
-	}
-    }
-
-    private static void print(InputStream inputStream) {
-	log.trace("::print(inputStream) - Start: ");
-	if (inputStream == null) throw new IllegalArgumentException("The parameter can't be null.");
-	try {
-	    
-	    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-	    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-	    String line;
-	    while ((line = bufferedReader.readLine()) != null) {
-		log.info("::print() - out > "+line);
-	    }
-	    
-	    log.trace("::print(inputStream) - Finish: ");
-	} catch (Exception e) {
-	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
 	}
     }
 
