@@ -120,6 +120,8 @@ public class EncoderConfigurations {
     
     public static Boolean useSubfolder=true;
     
+    public static String videoResolution="FullHD";
+    
     /**
      * Warning on modification. This enumeration is synchronized directly with the view
      * 

@@ -122,7 +122,11 @@ public class EncoderServiceTest {
 	try {
 
 	    String fileName = "C:\\test\\[Erai-raws] One Piece - 837 [1080p][Multiple Subtitle].mkv";
-	    String expected="ffmpeg -i \"C:\\test\\[Erai-raws] One Piece - 837 [1080p][Multiple Subtitle].mkv\" -vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v 12M -maxrate:v 15M -cq 24 -qmin 24 -qmax 24 -rc cbr -c:a aac -b:a 224k -map 0:v -map 0:a -map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text \"C:\\test\\One Piece S19E55-0837-[NvEnc@24+slow][ffmpeg].mp4\"";
+//	    String expected="ffmpeg -i \"C:\\test\\[Erai-raws] One Piece - 837 [1080p][Multiple Subtitle].mkv\" -vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v 12M -maxrate:v 15M -cq 24 -qmin 24 -qmax 24 -rc cbr -c:a aac -b:a 224k -map 0:v -map 0:a -map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text \"C:\\test\\One Piece S19E55-0837-[NvEnc@24+slow][ffmpeg].mp4\"";
+	    String expected="ffmpeg -hwaccel nvdec -i \"C:\\test\\[Erai-raws] One Piece - 837 [1080p][Multiple Subtitle].mkv\" "
+		    + "-vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v 9M -rc cbr -cbr true -cq 24 -qmin 24 -qmax 24 -c:a aac -b:a 224k "
+		    + "-map 0:v -map 0:a -map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text "
+		    + "\"C:\\test\\One Piece S19E55-0837-[1080p][NvEnc@24+slow][ffmpeg].mp4\"";
 	    
 	    File file=new File(fileName);
 	    EncoderService encoder=new EncoderService();
@@ -135,7 +139,10 @@ public class EncoderServiceTest {
 	    
 	    
 	    fileName = "F:\\Files\\Media\\Video\\Encoding\\Juego de Tronos S01E01 - [4K][claucha75][dual].mkv";
-	    expected="ffmpeg -i \"F:\\Files\\Media\\Video\\Encoding\\Juego de Tronos S01E01 - [4K][claucha75][dual].mkv\" -vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v 12M -maxrate:v 15M -cq 24 -qmin 24 -qmax 24 -rc cbr -c:a aac -b:a 224k -map 0:v -map 0:a -map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text \"F:\\Files\\Media\\Video\\Encoding\\Juego de Tronos S01E01-[NvEnc@24+slow][ffmpeg].mp4\"";
+	    expected="ffmpeg -hwaccel nvdec -i \"F:\\Files\\Media\\Video\\Encoding\\Juego de Tronos S01E01 - [4K][claucha75][dual].mkv\" "
+		    + "-vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v 9M -rc cbr -cbr true -cq 24 -qmin 24 -qmax 24 -c:a aac -b:a 224k -map 0:v -map 0:a "
+		    + "-map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text "
+		    + "\"F:\\Files\\Media\\Video\\Encoding\\Juego de Tronos S01E01-[1080p][NvEnc@24+slow][ffmpeg].mp4\"";
 	    
 	    File file2=new File(fileName);
 	    encoder=new EncoderService();

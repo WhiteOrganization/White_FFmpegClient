@@ -177,7 +177,7 @@ public class EncoderService {
 		}
 		
 		episode.file=file;
-		String command=getEncodingCommand(episode,useSubfolder,outputExtension,EncoderConfigurations.addExternalSubtitles);
+		String command=getEncodingCommand(episode,useSubfolder,outputExtension,EncoderConfigurations.addExternalSubtitles, VideoResolution.getVideoResolutionFrom(EncoderConfigurations.videoResolution) );
 		episode.encodingCommand=command;
 		commands.add(command);
 		currentEpisodes.add(episode);
@@ -195,6 +195,7 @@ public class EncoderService {
     /**
      * Core method of the library.
      * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
+     * @param resolution
      * @since 2020-07-21
      * @param episode
      * @param useSubfolder
@@ -202,7 +203,7 @@ public class EncoderService {
      * @param addExternalSubtitles
      * @return 
      */
-    public String getEncodingCommand(Episode episode,Boolean useSubfolder, String outputExtension,Boolean addExternalSubtitles) {
+    public String getEncodingCommand(Episode episode,Boolean useSubfolder, String outputExtension,Boolean addExternalSubtitles,VideoResolution resolution) {
 	log.trace("::getEncodingCommand(episode) - Start: ");
 	if (episode == null) return null;
 	try {
@@ -216,9 +217,10 @@ public class EncoderService {
 	    if (useSubfolder) encodingSubFolderPath="\""+episode.file.getParent()+File.separator+encodingSubFolder+"\\"+"\"";
 	    
 	    //Simulated Constants ought to be parameterized in later versions
-	    String ENCODER=EncoderConfigurations.ffmpegPath==null?"ffmpeg":"\""+EncoderConfigurations.ffmpegPath+"\"";
-	    String ENCODER_CONFIG="-vcodec h264_nvenc -pix_fmt yuv420p -preset slow";
-	    String encoderQuality="-b:v 12M -maxrate:v 15M -cq 24 -qmin 24 -qmax 24 -rc cbr";
+	    String ENCODER=(EncoderConfigurations.ffmpegPath==null?"ffmpeg":"\""+EncoderConfigurations.ffmpegPath+"\"")+" -hwaccel nvdec";
+	    Integer videoBitrateMB=resolution.idealBitrateKB/1000;
+	    String ENCODER_VIDEO="-vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v "+videoBitrateMB+"M -rc cbr -cbr true -cq 24 -qmin 24 -qmax 24";
+//	    String encoderQuality="-b:v 12M -maxrate:v 12M -cq 24 -qmin 24 -qmax 24 -rc cbr";
 	    String ENCODER_AUDIO="-c:a aac -b:a 224k";
 	    
 	    //Current support for Spanish and English only
@@ -243,7 +245,7 @@ public class EncoderService {
 	    }
 	    
 	    String ENCODER_MAPPINGS="-map 0:v -map 0:a "+SUBTITLES;
-	    String VERBOSE="-[NvEnc@24+slow][ffmpeg]";
+	    String VERBOSE="-["+resolution.verticalPixels+"p][NvEnc@24+slow][ffmpeg]";
 	    
 	    String input="-i \""+episode.file.getAbsolutePath()+"\"";
 	    String externalSubs=addExternalSubtitles?"-i \""+externalSubtitle.file.getAbsolutePath()+"\"":"";
@@ -255,8 +257,8 @@ public class EncoderService {
 	    String cmd=ENCODER+" "+
 		    input+" "+
 		    (addExternalSubtitles?externalSubs+" ":"")+
-		    ENCODER_CONFIG+" "+
-		    encoderQuality+" "+
+		    ENCODER_VIDEO+" "+
+//		    encoderQuality+" "+
 		    ENCODER_AUDIO+" "+
 		    ENCODER_MAPPINGS+" "+
 		    output;
@@ -290,6 +292,8 @@ public class EncoderService {
 	    if(EncoderConfigurations.useSubfolder) lines.add("MKDIR "+encodingSubFolderPath);
 	    for(String command:commands)
 		lines.add(command);
+	    String notification="start C:\\Windows\\Media\\tada.wav";
+	    lines.add(notification);
 	    lines.add("pause");
 
 	    log.trace("::getFileLinesFromCommands(commands) - Finish: ");
@@ -307,7 +311,7 @@ public class EncoderService {
 	try {
 	    
 	    String localPath=new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().getPath()+"\\";
-	    String command="start "+"\"\" "+"\""+localPath+BATCH_COMMANDS_FILE_NAME+"\"";
+	    String command="start \"Encoding\" /belownormal "+"\""+localPath+BATCH_COMMANDS_FILE_NAME+"\"";
 	    log.info("::executeBatchFile() Command: "+command);
 	    java.lang.Process process=Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", command});
 	    

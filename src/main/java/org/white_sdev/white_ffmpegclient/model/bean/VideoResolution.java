@@ -1,6 +1,6 @@
 /*
- *  Filename:  Episode.java
- *  Creation Date:  Jul 16, 2020
+ *  Filename:  VideoResolution.java
+ *  Creation Date:  Jul 22, 2020
  *  Purpose:   
  *  Author:    <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
  * 
@@ -98,81 +98,86 @@
  */
 package org.white_sdev.white_ffmpegclient.model.bean;
 
-import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
 import static org.white_sdev.white_validations.parameters.ParameterValidator.notNullValidation;
+
 
 
 /**
  * 
  * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
- * @since Jul 16, 2020
+ * @since Jul 22, 2020
  */
 @Slf4j
-public class Episode {
+public class VideoResolution {
     
     public String name;
-    public String seasonEpisodeNumber;
-    public String absoluteEpisodeNumber;
-    public Season season;
-    public File file;
-    public String encodingCommand;
+    public String ratio;
+    public Integer verticalPixels;
+    //Google Recommendations: https://support.google.com/youtube/answer/1722171?hl=en
+    public Integer idealBitrateKB;
+    
+    
+    public static LinkedHashSet<VideoResolution> SUPPORTED_VIDEO_RESOLUTIONS=new LinkedHashSet<>(){{
+	add(new VideoResolution("HD", 720, 6000));
+	add(new VideoResolution("FullHD", 1080, 9000));
+	add(new VideoResolution("2K", 1440, 20000));
+	add(new VideoResolution("4K", 2160, 50000));
+    }};
+    
+    
     
     /**
      * Class Constructor.{Requirement_Reference}
      * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
      * @param name
-     * @param seasonEpisodeNumber
-     * @param absoluteEpisodeNumber
-     * @param season
-     * @since Jul 16, 2020
+     * @param verticalPixels
+     * @param idealBitrate
+     * @since Jul 22, 2020
      * @param parameter The parameter to create the object.
      * @throws IllegalArgumentException - if the argument provided is null.
      */
-    public Episode(String seasonEpisodeNumber,String absoluteEpisodeNumber,Season season) {
-	notNullValidation(absoluteEpisodeNumber);
-	notNullValidation(season);
-	
-	this.seasonEpisodeNumber=seasonEpisodeNumber!=null?seasonEpisodeNumber:calculateSeasonEpisodeNumber(absoluteEpisodeNumber,season);
-	this.absoluteEpisodeNumber=absoluteEpisodeNumber;
-	this.season=season;
-    }
-    
-    public Episode(String absoluteEpisodeNumber,Season season) {
-	this(null,absoluteEpisodeNumber,season);
-    }
+    public VideoResolution(String name,Integer verticalPixels,Integer idealBitrate) {
+	log.trace("::VideoResolution() - Start: ");
+	notNullValidation(new Object[]{name,verticalPixels,idealBitrate},"Impossible to create the VideoResolution instance. The provided parameters can't be null.");
+	try{
+	    
+	    this.name=name;
+	    this.verticalPixels=verticalPixels;
+	    this.idealBitrateKB=idealBitrate;
+	    
 
-    public static String calculateSeasonEpisodeNumber(String absoluteEpisodeNumberString, Season season) {
-	log.trace("::calculateSeasonEpisodeNumber(parameter) - Start: ");
-	notNullValidation(absoluteEpisodeNumberString);
-	
-	try {
-	    
-	    Integer seasonEpisodeNumber=Integer.parseInt(absoluteEpisodeNumberString)-season.startsOnEpisode.intValue()+1;
-	    Integer seasonDigits=season.getNumberOfEpisodeNumberDigits();
-	    if(season.endsOnEpisode!=null){
-
-		log.trace("::calculateSeasonEpisodeNumber(parameter) - Finish: calculated season episode number");
-		return String.format("%0"+seasonDigits+"d", seasonEpisodeNumber);
-	    }else{
-		
-		log.warn("::calculateSeasonEpisodeNumber(parameter) - Finish: current season, imposible to calculate episode number format length");
-		return String.format("%0"+seasonDigits+"d", seasonEpisodeNumber);
-	    }
-	    
-	    
+	    log.trace("::VideoResolution() - Finish: ");
 	} catch (Exception e) {
-	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+            throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
+        }
+    }
+    
+    
+    public static String[] getSupportedResolutionsNames(){
+	ArrayList<String> resolutions= new ArrayList<>();
+	int i=0;
+	
+	SUPPORTED_VIDEO_RESOLUTIONS.forEach((videoResolution)->{
+	    resolutions.add(videoResolution.name);
+	});
+	
+	String[] elementsArray= new String[resolutions.size()];
+	resolutions.toArray(elementsArray);
+	return elementsArray;
+    }
+    
+    public static VideoResolution getVideoResolutionFrom(String name){
+	if(name==null || name.isBlank()) return null;
+	
+	for(VideoResolution videoResolution:SUPPORTED_VIDEO_RESOLUTIONS){
+	    if(name.equals(videoResolution.name))return videoResolution;
 	}
+	
+	return null;
     }
-    
-    @Override
-    public String toString() {
-	return "Episode{[name:" + name + "][seasonEpisodeNumber:" + seasonEpisodeNumber + "][absoluteEpisodeNumber:" + absoluteEpisodeNumber + "]}";
-    }
-    
 }

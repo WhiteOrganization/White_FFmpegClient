@@ -321,6 +321,7 @@ public class MainFrameController {
 	    EncoderConfigurations.selectedLanguage = (EncoderConfigurations.Language) view.jComboBoxDefaultLanguage.getSelectedItem();
 	    if (view.jCheckBoxCustomFFmpeg.isSelected()) EncoderConfigurations.ffmpegPath = view.jTextFieldFFmpegPath.getText();
 	    EncoderConfigurations.useSubfolder = view.jCheckBoxEncodeToSubfolder.isSelected();
+	    EncoderConfigurations.videoResolution=view.jComboBoxResolution.getSelectedItem().toString();
 
 	    log.trace("::loadEncoderConfigurations() - Finish: ");
 	} catch (Exception e) {
