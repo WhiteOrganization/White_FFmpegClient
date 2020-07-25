@@ -98,6 +98,7 @@
  */
 package org.white_sdev.white_ffmpegclient;
 
+import javax.swing.ToolTipManager;
 import lombok.extern.slf4j.Slf4j;
 import org.white_sdev.white_ffmpegclient.view.MainJFrame;
 
@@ -148,6 +149,9 @@ public class White_FFmpegClient {
 			break;
 		    }
 		}
+		
+		ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
+		
 	    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
 		java.util.logging.Logger.getLogger(MainJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 	    }

@@ -1,6 +1,6 @@
 /*
- *  Filename:  Episode.java
- *  Creation Date:  Jul 16, 2020
+ *  Filename:  ConstantBitrate.java
+ *  Creation Date:  Jul 25, 2020
  *  Purpose:   
  *  Author:    <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
  * 
@@ -96,83 +96,55 @@
  * 
  * Creative Commons may be contacted at creativecommons.org.
  */
-package org.white_sdev.white_ffmpegclient.model.bean;
+package org.white_sdev.white_ffmpegclient.model.bean.encoding.mode;
 
-import lombok.extern.slf4j.Slf4j;
-
-import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
-import static org.white_sdev.white_validations.parameters.ParameterValidator.notNullValidation;
-
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 
  * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
- * @since Jul 16, 2020
+ * @since Jul 25, 2020
  */
 @Slf4j
-public class Episode {
+public class ConstantBitrate extends EncodingModeType{
     
-    public String name;
-    public String seasonEpisodeNumber;
-    public String absoluteEpisodeNumber;
-    public Season season;
-    public File file;
-    public String encodingCommand;
-    
-    /**
-     * Class Constructor.{Requirement_Reference}
-     * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
-     * @param name
-     * @param seasonEpisodeNumber
-     * @param absoluteEpisodeNumber
-     * @param season
-     * @since Jul 16, 2020
-     * @param parameter The parameter to create the object.
-     * @throws IllegalArgumentException - if the argument provided is null.
-     */
-    public Episode(String seasonEpisodeNumber,String absoluteEpisodeNumber,Season season) {
-	notNullValidation(absoluteEpisodeNumber);
-	notNullValidation(season);
-	
-	this.seasonEpisodeNumber=seasonEpisodeNumber!=null?seasonEpisodeNumber:calculateSeasonEpisodeNumber(absoluteEpisodeNumber,season);
-	this.absoluteEpisodeNumber=absoluteEpisodeNumber;
-	this.season=season;
+    public ConstantBitrate(String name, String shortName, Number qualityGrade, String globalConfigurationsSetName, Set<String> SupportedGlobalConfigs, String defaultGlobalConfigurationsElement) {
+	super(name!=null?name:"Constant Bitrate",
+		shortName!=null?shortName:"CBR",
+		qualityGrade!=null?qualityGrade:22,
+		globalConfigurationsSetName!=null?globalConfigurationsSetName:"preset",
+		SupportedGlobalConfigs!=null?SupportedGlobalConfigs:new LinkedHashSet<>(){{
+		    add("default");
+		    add("slow");
+		    add("medium");
+		    add("fast");
+		    add("hp");
+		    add("hq");
+		    add("bd");
+		    add("ll");
+		    add("llhq");
+		    add("llhp");
+		    add("lossless");
+		    add("losslesshp");
+		}},defaultGlobalConfigurationsElement );
     }
     
-    public Episode(String absoluteEpisodeNumber,Season season) {
-	this(null,absoluteEpisodeNumber,season);
-    }
-
-    public static String calculateSeasonEpisodeNumber(String absoluteEpisodeNumberString, Season season) {
-	log.trace("::calculateSeasonEpisodeNumber(parameter) - Start: ");
-	notNullValidation(absoluteEpisodeNumberString);
-	
-	try {
-	    
-	    Integer seasonEpisodeNumber=Integer.parseInt(absoluteEpisodeNumberString)-season.startsOnEpisode.intValue()+1;
-	    Integer seasonDigits=season.getNumberOfEpisodeNumberDigits();
-	    if(season.endsOnEpisode!=null){
-
-		log.trace("::calculateSeasonEpisodeNumber(parameter) - Finish: calculated season episode number");
-		return String.format("%0"+seasonDigits+"d", seasonEpisodeNumber);
-	    }else{
-		
-		log.warn("::calculateSeasonEpisodeNumber(parameter) - Finish: current season, imposible to calculate episode number format length");
-		return String.format("%0"+seasonDigits+"d", seasonEpisodeNumber);
-	    }
-	    
-	    
-	} catch (Exception e) {
-	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
-	}
+    public ConstantBitrate(){
+	this(null, null, null, null, null, null);
     }
     
     @Override
-    public String toString() {
-	return "Episode{[name:" + name + "][seasonEpisodeNumber:" + seasonEpisodeNumber + "][absoluteEpisodeNumber:" + absoluteEpisodeNumber + "]}";
+    public String getCommand() {
+	log.trace("::getCommand(parameter) - Start: ");
+	try {
+	    //TODO: Implement operations of the method [Tools -> Templates]
+	    log.trace("::getCommand(parameter) - Finish: ");
+	    return "-b:v "+this.qualityGrade+"M -rc cbr -cbr true ";
+	} catch (Exception e) {
+	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+	}
     }
     
 }

@@ -98,7 +98,8 @@
  */
 package org.white_sdev.white_ffmpegclient.service;
 
-import org.white_sdev.white_ffmpegclient.model.bean.EncoderConfigurations;
+import org.white_sdev.white_ffmpegclient.model.bean.shows.Episode;
+import org.white_sdev.white_ffmpegclient.model.bean.encoding.FFmpegConfig;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -126,8 +127,10 @@ import static org.white_sdev.white_validations.parameters.ParameterValidator.not
 @Slf4j
 public class EncoderService {
     
-    LinkedHashSet<Episode> currentEpisodes=new LinkedHashSet<>();
     public final String BATCH_COMMANDS_FILE_NAME="encoding-commands.bat";
+    public Integer batchCounter=1;
+    
+    LinkedHashSet<Episode> currentEpisodes=new LinkedHashSet<>();
     public final String encodingSubFolder="Encoded";
     public String encodingSubFolderPath;
     
@@ -136,14 +139,14 @@ public class EncoderService {
 	encodingSubFolderPath="\""+new File(".").getCanonicalPath()+File.separator+encodingSubFolder+"\\"+"\"";
     }
     
-    public void encode(Set<File> files) {
+    public void encode(Set<File> files, Boolean autoDetectEpisodes) {
 	log.trace("::encode(files) - Start: ");
 	notNullValidation(files,"Files provided cant be null, provide some files to encode.");
 	if (files == null) throw new IllegalArgumentException("The parameter can't be null.");
 	try {
 	    
-	    ArrayList<String> commands= getEncodingCommands(files,EncoderConfigurations.useSubfolder,EncoderConfigurations.outputExtension);
-	    Files.write(Paths.get("./"+BATCH_COMMANDS_FILE_NAME), commands, StandardCharsets.UTF_8);
+	    ArrayList<String> commands= getEncodingCommands(files,FFmpegConfig.useSubfolder,FFmpegConfig.outputExtension,autoDetectEpisodes);
+	    Files.write(Paths.get("./"+batchCounter+BATCH_COMMANDS_FILE_NAME), commands, StandardCharsets.UTF_8);
 	    executeBatchFile();
 	    
 	    
@@ -157,7 +160,7 @@ public class EncoderService {
     /*
      *  Both Controller actions call this
      */
-    public ArrayList<String> getEncodingCommands(Set<File> files,Boolean useSubfolder, String outputExtension) {
+    public ArrayList<String> getEncodingCommands(Set<File> files,Boolean useSubfolder, String outputExtension, Boolean autoDetectEpisodes) {
 	log.trace("::getEncodingCommand(files) - Start: ");
 	    if (files == null) return null;
 	
@@ -165,22 +168,25 @@ public class EncoderService {
 	    
 	    LinkedHashSet<String> commands= new LinkedHashSet<>();
 	    
-	    
-	    for(var file:files){
-		Episode episode=ShowsManager.getEpisode(file.getName());
-		if(episode==null){
-		    if(JOptionPane.showConfirmDialog(null, "It wasn't possible to identify one of the files as an episode of any of the known shows, do you want to continue scanning the files?")==JOptionPane.NO_OPTION){
-			break;
-		    }else{
-			continue;
+	    if(autoDetectEpisodes){
+		for(var file:files){
+		    Episode episode=ShowsManager.getEpisode(file.getName());
+		    if(episode==null){
+			if(JOptionPane.showConfirmDialog(null, "It wasn't possible to identify the file ["+file.getName()+"] as an episode of any of the known shows, do you want to continue scanning the files?")==JOptionPane.NO_OPTION){
+			    break;
+			}else{
+			    continue;
+			}
 		    }
+
+		    episode.file=file;
+		    String command=getEncodingCommand(episode,useSubfolder,outputExtension,FFmpegConfig.addExternalSubtitles, VideoResolution.getVideoResolutionFrom(FFmpegConfig.videoResolution) );
+		    episode.encodingCommand=command;
+		    commands.add(command);
+		    currentEpisodes.add(episode);
 		}
-		
-		episode.file=file;
-		String command=getEncodingCommand(episode,useSubfolder,outputExtension,EncoderConfigurations.addExternalSubtitles, VideoResolution.getVideoResolutionFrom(EncoderConfigurations.videoResolution) );
-		episode.encodingCommand=command;
-		commands.add(command);
-		currentEpisodes.add(episode);
+	    }else{
+		throw new UnsupportedOperationException("This operation is not supported yet, please tell us if you need it");
 	    }
 	    
 	    
@@ -217,9 +223,10 @@ public class EncoderService {
 	    if (useSubfolder) encodingSubFolderPath="\""+episode.file.getParent()+File.separator+encodingSubFolder+"\\"+"\"";
 	    
 	    //Simulated Constants ought to be parameterized in later versions
-	    String ENCODER=(EncoderConfigurations.ffmpegPath==null?"ffmpeg":"\""+EncoderConfigurations.ffmpegPath+"\"")+" -hwaccel nvdec";
-	    Integer videoBitrateMB=resolution.idealBitrateKB/1000;
-	    String ENCODER_VIDEO="-vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v "+videoBitrateMB+"M -rc cbr -cbr true -cq 24 -qmin 24 -qmax 24";
+	    String ENCODER=(FFmpegConfig.ffmpegPath==null?"ffmpeg":"\""+FFmpegConfig.ffmpegPath+"\"")+" -hwaccel nvdec";
+	    
+	    String ENCODER_VIDEO="-vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v "+resolution.idealBitrateKB+"K -rc cbr -cbr true -cq 24 -qmin 24 -qmax 24 "
+		    + "-crf "+(resolution.name!=null&&resolution.name.equals("4K")?"24":"24");
 //	    String encoderQuality="-b:v 12M -maxrate:v 12M -cq 24 -qmin 24 -qmax 24 -rc cbr";
 	    String ENCODER_AUDIO="-c:a aac -b:a 224k";
 	    
@@ -227,8 +234,8 @@ public class EncoderService {
 	    String SUBTITLES_SPANISH="-map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text";
 	    String SUBTITLES_ENGLISH="-map 0:s:m:language:eng -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:spa -c:s mov_text";
 	    String SUBTITLES_NONE="-map 0:s -c:s mov_text";
-	    String SUBTITLES=	(EncoderConfigurations.selectedLanguage==EncoderConfigurations.Language.NONE? SUBTITLES_NONE:
-				 EncoderConfigurations.selectedLanguage==EncoderConfigurations.Language.ENGLISH? SUBTITLES_ENGLISH:
+	    String SUBTITLES=	(FFmpegConfig.selectedLanguage==FFmpegConfig.Language.NONE? SUBTITLES_NONE:
+				 FFmpegConfig.selectedLanguage==FFmpegConfig.Language.ENGLISH? SUBTITLES_ENGLISH:
 				 SUBTITLES_SPANISH);
 	    
 	    log.debug("::getEncodingCommand(episode) addExternalSubtitles:" + addExternalSubtitles);
@@ -289,7 +296,7 @@ public class EncoderService {
 	    
 	    ArrayList<String> lines=new ArrayList<>();
 //	    lines.add("@echo off");
-	    if(EncoderConfigurations.useSubfolder) lines.add("MKDIR "+encodingSubFolderPath);
+	    if(FFmpegConfig.useSubfolder) lines.add("MKDIR "+encodingSubFolderPath);
 	    for(String command:commands)
 		lines.add(command);
 	    String notification="start C:\\Windows\\Media\\tada.wav";
@@ -311,10 +318,11 @@ public class EncoderService {
 	try {
 	    
 	    String localPath=new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().getPath()+"\\";
-	    String command="start \"Encoding\" /belownormal "+"\""+localPath+BATCH_COMMANDS_FILE_NAME+"\"";
+	    String command="start \"Encoding\" /belownormal "+"\""+localPath+batchCounter+BATCH_COMMANDS_FILE_NAME+"\"";
 	    log.info("::executeBatchFile() Command: "+command);
 	    java.lang.Process process=Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", command});
 	    
+	    batchCounter++;
 	    
 	    log.trace("::executeBatchFile() - Finish: ");
 	    
@@ -328,7 +336,7 @@ public class EncoderService {
 	if (episode == null) return null;
 	try {
 	    
-	    for (java.util.Map.Entry<EncoderConfigurations.Language, String> entry : Subtitle.SUPPORTED_LANGUAGES.entrySet()) {
+	    for (java.util.Map.Entry<FFmpegConfig.Language, String> entry : Subtitle.SUPPORTED_LANGUAGES.entrySet()) {
 		String languageCode = entry.getValue(); //String Representation in a filename
 		String fileNameNoExtension=getNameWithoutExtension(episode.file.getPath());
 		

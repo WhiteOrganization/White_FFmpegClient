@@ -123,10 +123,10 @@ public class VideoResolution {
     
     
     public static LinkedHashSet<VideoResolution> SUPPORTED_VIDEO_RESOLUTIONS=new LinkedHashSet<>(){{
-	add(new VideoResolution("HD", 720, 6000));
-	add(new VideoResolution("FullHD", 1080, 9000));
-	add(new VideoResolution("2K", 1440, 20000));
-	add(new VideoResolution("4K", 2160, 50000));
+	add(new VideoResolution("FullHD", 1080, 5000));//9
+	add(new VideoResolution("HD", 720, 3000));//6.5
+	add(new VideoResolution("4K", 2160, 25000));//50
+	add(new VideoResolution("2K", 1440, 10000));//20
     }};
     
     

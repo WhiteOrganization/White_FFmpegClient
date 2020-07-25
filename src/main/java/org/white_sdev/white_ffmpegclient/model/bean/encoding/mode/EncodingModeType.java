@@ -1,6 +1,6 @@
 /*
- *  Filename:  EncoderConfigurations.java
- *  Creation Date:  Jul 18, 2020
+ *  Filename:  EncodingModeType.java
+ *  Creation Date:  Jul 25, 2020
  *  Purpose:   
  *  Author:    <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
  * 
@@ -96,40 +96,42 @@
  * 
  * Creative Commons may be contacted at creativecommons.org.
  */
-package org.white_sdev.white_ffmpegclient.model.bean;
+package org.white_sdev.white_ffmpegclient.model.bean.encoding.mode;
 
 //import lombok.extern.slf4j.Slf4j;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+import org.white_sdev.white_validations.parameters.ParameterValidator;
 
 
 /**
  * 
  * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
- * @since Jul 18, 2020
+ * @since Jul 25, 2020
  */
 //@Slf4j
-public class EncoderConfigurations {
-    
-    public static String outputExtension="mp4";
-    
-    public static Boolean addExternalSubtitles=false;
-    
-    public static Language selectedLanguage=Language.SPANISH;
-    
-    public static String ffmpegPath=null;
-    
-    public static Boolean useSubfolder=true;
-    
-    public static String videoResolution="FullHD";
-    
-    /**
-     * Warning on modification. This enumeration is synchronized directly with the view
-     * 
-     * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
-     * @since Jul 18, 2020
-     */
-    public static enum Language{
-	SPANISH, ENGLISH, NONE
+public abstract class EncodingModeType{
+    public String name;
+    public String shortName;
+    public Number qualityGrade;
+    public static String globalConfigurationsSetName;
+    public static final LinkedHashSet<String> SUPPORTED_GLOBAL_CONFIGS=new LinkedHashSet<>(){{add("default");}};
+    public String selectedGlobalConfigurationsElement;
+
+    public EncodingModeType(String name, String shortName, Number qualityGrade, String globalConfigurationsSetName, Set<String> supportedGlobalConfigs, String defaultGlobalConfigurationsElement){
+	ParameterValidator.notNullValidation(new Object[]{shortName},"The provided parameter can't be null. Impossible to instanciate the EncodingModeType");
+	this.name=name;
+	this.shortName=shortName;
+	this.qualityGrade=qualityGrade;
+	if(globalConfigurationsSetName!=null) EncodingModeType.globalConfigurationsSetName=globalConfigurationsSetName;
+    	if(supportedGlobalConfigs!=null) EncodingModeType.SUPPORTED_GLOBAL_CONFIGS.addAll(supportedGlobalConfigs);
+	this.selectedGlobalConfigurationsElement=defaultGlobalConfigurationsElement!=null?defaultGlobalConfigurationsElement:SUPPORTED_GLOBAL_CONFIGS.iterator().next();
     }
+    
+    
+    public abstract String getCommand();
+    
+    
     
 }

@@ -98,6 +98,7 @@
  */
 package org.white_sdev.white_ffmpegclient.model.bean;
 
+import org.white_sdev.white_ffmpegclient.model.bean.encoding.FFmpegConfig;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -116,11 +117,11 @@ public class Subtitle {
     
     
     /**
-     * EncoderConfigurations.Language and String Representation inside the ASS or SRT file name before the last dot https://bit.ly/2E0b5Pn https://bit.ly/3fWZiQ5
+     * FFmpegConfig.Language and String Representation inside the ASS or SRT file name before the last dot https://bit.ly/2E0b5Pn https://bit.ly/3fWZiQ5
      */
-    public static final LinkedHashMap<EncoderConfigurations.Language,String> SUPPORTED_LANGUAGES=new LinkedHashMap<>(){{
-	put(EncoderConfigurations.Language.SPANISH,"spa");
-	put(EncoderConfigurations.Language.ENGLISH,"eng");
+    public static final LinkedHashMap<FFmpegConfig.Language,String> SUPPORTED_LANGUAGES=new LinkedHashMap<>(){{
+	put(FFmpegConfig.Language.SPANISH,"spa");
+	put(FFmpegConfig.Language.ENGLISH,"eng");
     }};
     public static final LinkedHashMap<SubtitleFileExtension,String> SUPPORTED_SUBSTITLE_EXTENSIONS=new LinkedHashMap<>(){{
 	put(SubtitleFileExtension.SRT,"srt");
@@ -131,7 +132,7 @@ public class Subtitle {
     
     public File file;
     public Map.Entry<SubtitleFileExtension,String> fileExtension;
-    public Map.Entry<EncoderConfigurations.Language,String> language;
+    public Map.Entry<FFmpegConfig.Language,String> language;
     
     /**
      * Class Constructor.{Requirement_Reference}
@@ -142,7 +143,7 @@ public class Subtitle {
      * @param language
      * @throws IllegalArgumentException - if the argument provided is null.
      */
-    public Subtitle(File file, Map.Entry<EncoderConfigurations.Language,String> language,Map.Entry<SubtitleFileExtension,String> fileExtension) {
+    public Subtitle(File file, Map.Entry<FFmpegConfig.Language,String> language,Map.Entry<SubtitleFileExtension,String> fileExtension) {
 	log.trace("::Subtitle() - Start: ");
 	notNullValidation(new Object[]{file,language},"Impossible to create the object. The parameter can't be null.");
 	try{
@@ -160,7 +161,7 @@ public class Subtitle {
         }
     }
     
-    public Subtitle(File file, Map.Entry<EncoderConfigurations.Language,String> language){
+    public Subtitle(File file, Map.Entry<FFmpegConfig.Language,String> language){
 	this(file,language,null);
     }
     

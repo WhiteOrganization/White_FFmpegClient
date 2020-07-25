@@ -107,7 +107,7 @@ import javax.swing.JTable;
 import lombok.extern.slf4j.Slf4j;
 import org.white_sdev.white_ffmpegclient.controller.MainFrameController;
 import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
-import org.white_sdev.white_ffmpegclient.model.bean.EncoderConfigurations;
+import org.white_sdev.white_ffmpegclient.model.bean.encoding.FFmpegConfig;
 import org.white_sdev.white_ffmpegclient.model.bean.VideoResolution;
 
 /**
@@ -141,14 +141,15 @@ public class MainJFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroupQuality = new javax.swing.ButtonGroup();
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTableFiles = new javax.swing.JTable();
-        jPanelFFmpegPath = new javax.swing.JPanel();
-        jTextFieldFFmpegPath = new javax.swing.JTextField();
-        jButtonSelector = new javax.swing.JButton();
         jCheckBoxCustomFFmpeg = new javax.swing.JCheckBox();
+        jPanel4 = new javax.swing.JPanel();
+        jButtonSelector = new javax.swing.JButton();
+        jTextFieldFFmpegPath = new javax.swing.JTextField();
         jButtonEncode = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jTextFieldExtension = new javax.swing.JTextField();
@@ -159,6 +160,15 @@ public class MainJFrame extends javax.swing.JFrame {
         jCheckBoxEncodeToSubfolder = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
         jComboBoxResolution = new javax.swing.JComboBox<>();
+        jPanelCQOptions = new javax.swing.JPanel();
+        jRadioButton1 = new javax.swing.JRadioButton();
+        jRadioButton2 = new javax.swing.JRadioButton();
+        jSpinner1 = new javax.swing.JSpinner();
+        jSpinner2 = new javax.swing.JSpinner();
+        jCheckBoxIdentifyEpisodes = new javax.swing.JCheckBox();
+        jTextFieldNamingFormat = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        jCheckBoxEnableCQOptions = new javax.swing.JCheckBox();
         jButtonCommands = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -199,23 +209,12 @@ public class MainJFrame extends javax.swing.JFrame {
             jTableFiles.getColumnModel().getColumn(2).setMaxWidth(90);
         }
 
-        jTextFieldFFmpegPath.setText("Introduce FFmpeg custom path");
-
-        javax.swing.GroupLayout jPanelFFmpegPathLayout = new javax.swing.GroupLayout(jPanelFFmpegPath);
-        jPanelFFmpegPath.setLayout(jPanelFFmpegPathLayout);
-        jPanelFFmpegPathLayout.setHorizontalGroup(
-            jPanelFFmpegPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelFFmpegPathLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTextFieldFFmpegPath, javax.swing.GroupLayout.DEFAULT_SIZE, 510, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanelFFmpegPathLayout.setVerticalGroup(
-            jPanelFFmpegPathLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelFFmpegPathLayout.createSequentialGroup()
-                .addGap(0, 1, Short.MAX_VALUE)
-                .addComponent(jTextFieldFFmpegPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+        jCheckBoxCustomFFmpeg.setText("Custom FFmpeg path");
+        jCheckBoxCustomFFmpeg.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxCustomFFmpegActionPerformed(evt);
+            }
+        });
 
         jButtonSelector.setText("Select Files / Folder");
         jButtonSelector.addActionListener(new java.awt.event.ActionListener() {
@@ -224,12 +223,22 @@ public class MainJFrame extends javax.swing.JFrame {
             }
         });
 
-        jCheckBoxCustomFFmpeg.setText("Custom FFmpeg path");
-        jCheckBoxCustomFFmpeg.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBoxCustomFFmpegActionPerformed(evt);
-            }
-        });
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addContainerGap(24, Short.MAX_VALUE)
+                .addComponent(jButtonSelector)
+                .addContainerGap())
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jButtonSelector, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+
+        jTextFieldFFmpegPath.setEditable(false);
+        jTextFieldFFmpegPath.setText("FFmpeg directory path");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -238,25 +247,26 @@ public class MainJFrame extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 662, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jCheckBoxCustomFFmpeg)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jPanelFFmpegPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 96, Short.MAX_VALUE)
-                        .addComponent(jButtonSelector)))
+                        .addGap(18, 18, 18)
+                        .addComponent(jTextFieldFFmpegPath)
+                        .addGap(18, 18, 18)
+                        .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 205, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 185, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jButtonSelector)
-                    .addComponent(jPanelFFmpegPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jCheckBoxCustomFFmpeg))
+                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jCheckBoxCustomFFmpeg)
+                        .addComponent(jTextFieldFFmpegPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -275,11 +285,11 @@ public class MainJFrame extends javax.swing.JFrame {
         jLabel1.setText("Output File Format [extension]:");
 
         jCheckBoxIncludeSubs.setText("Add subtitles found in the same file folder");
-        jCheckBoxIncludeSubs.setToolTipText("subs files must have the same name before the first dot (.) -> myFile.mkv  :::  myFile.eng.mkv");
+        jCheckBoxIncludeSubs.setToolTipText("subs files must have the same name before the first dot (.) -> myFile.mkv  :::  myFile.eng.srt");
 
         jLabel2.setText("Defaulted Language:");
 
-        jComboBoxDefaultLanguage.setModel(new DefaultComboBoxModel<>(EncoderConfigurations.Language.values()));
+        jComboBoxDefaultLanguage.setModel(new DefaultComboBoxModel<>(FFmpegConfig.Language.values()));
 
         jCheckBoxEncodeToSubfolder.setSelected(true);
         jCheckBoxEncodeToSubfolder.setText("Save encoded files into a sub-folder");
@@ -290,6 +300,77 @@ public class MainJFrame extends javax.swing.JFrame {
             VideoResolution.getSupportedResolutionsNames()
         ));
 
+        jPanelCQOptions.setBorder(javax.swing.BorderFactory.createTitledBorder("Custom Quality Options"));
+
+        buttonGroupQuality.add(jRadioButton1);
+        jRadioButton1.setSelected(true);
+        jRadioButton1.setText(
+            FFmpegConfig.SUPPORTED_ENCODING_MODES.get(
+                FFmpegConfig.EncodingMode.AverageBitrate
+            ).shortName
+        );
+        jRadioButton1.setToolTipText("<html>\n\t<H4>[Constant Quality | Constant Quantization Parameter ∴ <bold>Variable Bitrate</bold> &gt; Constant Rate Factor] </H4>\n\tImproved Quality in motionless sections of the video and decreases Quality on dinamic sections of the same video.\n</html>");
+
+        buttonGroupQuality.add(jRadioButton2);
+        jRadioButton2.setText(
+            FFmpegConfig.SUPPORTED_ENCODING_MODES.get(
+                FFmpegConfig.EncodingMode.ConstantQuality
+            ).shortName
+        );
+        jRadioButton2.setToolTipText("<html>\n\t<H4>[ Average Bitrate | <bold>Constant Bitrate</bold> &gt; Qualiy Rate Factor] </H4>\n\t<ol>\n\t\t<li>\n\t\tQuicker Encoding. \n\t\t</li> <li>\n\t\tCertain scenarios on videos produce reduced file sizes witout compromise on Quality.\n\t\t</li> <li>\n\t\t Higher file size on heavy motion and/or grainy videos.\n\t\t</li> <li>\n\t\t Usually not recommended unless you are struggling with file sizes.\n\t\t</li><li>\n\t\t Use at least and recomended 2-Pass encoding when this is active <br>\n\t\t\t(This will make the encoding process slower)\n\t\t</li><li>\n\t\tuse 2-Pass encoding\n\t\t</li>\n\t</ol>\n\n</html>");
+
+        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(22, 0, null, 1));
+        jSpinner1.setToolTipText("<html>\nThe higher the better image Quality\nGoogle recommended values depending on Resolution:\n<ul><li>2160p (4k)       : 35-68 Mbps\n</li><li>1440p (2k)       :16-24 Mbps\n</li><li>1080p (FullHD): 8-12 Mbps\n</li><li>720p   (HD)      : 5-7.5 Mbps\n</li></ul>\n</html>\n");
+
+        jSpinner2.setModel(new javax.swing.SpinnerNumberModel(22, 0, 52, 1));
+        jSpinner2.setToolTipText("<html>\n<ul><li>The lower, the better Image Quality\n</li><li>Every 6 points it will double/halve the size of your file\n</li><li>12 will produce a visually loseless output but will increase the size substantially\n</li><li>0 might produce an unreproducible file\n</li></ul>\n</html>");
+
+        javax.swing.GroupLayout jPanelCQOptionsLayout = new javax.swing.GroupLayout(jPanelCQOptions);
+        jPanelCQOptions.setLayout(jPanelCQOptionsLayout);
+        jPanelCQOptionsLayout.setHorizontalGroup(
+            jPanelCQOptionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelCQOptionsLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanelCQOptionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelCQOptionsLayout.createSequentialGroup()
+                        .addComponent(jRadioButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelCQOptionsLayout.createSequentialGroup()
+                        .addComponent(jRadioButton2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        jPanelCQOptionsLayout.setVerticalGroup(
+            jPanelCQOptionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanelCQOptionsLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanelCQOptionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jRadioButton1)
+                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanelCQOptionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jRadioButton2))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jCheckBoxIdentifyEpisodes.setSelected(true);
+        jCheckBoxIdentifyEpisodes.setText("Automatically identify shows episodes");
+
+        jTextFieldNamingFormat.setEditable(false);
+        jTextFieldNamingFormat.setText("{path}{show}{season}{season_episode}{absolute_episode}{encoding_verbose}");
+
+        jLabel4.setText("Episode Naming:");
+
+        jCheckBoxEnableCQOptions.setText("Force Custom Quality");
+        jCheckBoxEnableCQOptions.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxEnableCQOptionsActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -298,22 +379,33 @@ public class MainJFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel3))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jComboBoxResolution, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jComboBoxDefaultLanguage, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jCheckBoxEncodeToSubfolder)
+                            .addComponent(jCheckBoxIdentifyEpisodes)))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jTextFieldNamingFormat))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextFieldExtension, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jCheckBoxIncludeSubs)
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jComboBoxDefaultLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jCheckBoxEncodeToSubfolder))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jLabel3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jComboBoxResolution, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jCheckBoxIncludeSubs)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanelCQOptions, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addComponent(jCheckBoxEnableCQOptions, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -323,13 +415,24 @@ public class MainJFrame extends javax.swing.JFrame {
                     .addComponent(jTextFieldExtension, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1)
                     .addComponent(jCheckBoxIncludeSubs)
-                    .addComponent(jLabel2)
-                    .addComponent(jComboBoxDefaultLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jCheckBoxEncodeToSubfolder))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(jComboBoxResolution, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jCheckBoxEnableCQOptions))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel2)
+                            .addComponent(jComboBoxDefaultLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jCheckBoxEncodeToSubfolder))
+                        .addGap(10, 10, 10)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jComboBoxResolution, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel3)
+                            .addComponent(jCheckBoxIdentifyEpisodes))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel4)
+                            .addComponent(jTextFieldNamingFormat, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jPanelCQOptions, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -362,9 +465,9 @@ public class MainJFrame extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(18, 18, 18)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonEncode)
                     .addComponent(jButtonCommands))
@@ -377,8 +480,7 @@ public class MainJFrame extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -433,31 +535,45 @@ public class MainJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonCommandsActionPerformed
 
     private void jCheckBoxCustomFFmpegActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxCustomFFmpegActionPerformed
-        controller.customFFmpegPathActivated();
+        controller.customFFmpegPathToggleEditable();
     }//GEN-LAST:event_jCheckBoxCustomFFmpegActionPerformed
+
+    private void jCheckBoxEnableCQOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxEnableCQOptionsActionPerformed
+        controller.enableCQOptions();
+    }//GEN-LAST:event_jCheckBoxEnableCQOptionsActionPerformed
 
 
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.ButtonGroup buttonGroupQuality;
     private javax.swing.JButton jButtonCommands;
     private javax.swing.JButton jButtonEncode;
     private javax.swing.JButton jButtonSelector;
     public javax.swing.JCheckBox jCheckBoxCustomFFmpeg;
+    public javax.swing.JCheckBox jCheckBoxEnableCQOptions;
     public javax.swing.JCheckBox jCheckBoxEncodeToSubfolder;
+    public javax.swing.JCheckBox jCheckBoxIdentifyEpisodes;
     public javax.swing.JCheckBox jCheckBoxIncludeSubs;
-    public javax.swing.JComboBox<EncoderConfigurations.Language> jComboBoxDefaultLanguage;
+    public javax.swing.JComboBox<FFmpegConfig.Language> jComboBoxDefaultLanguage;
     public javax.swing.JComboBox<String> jComboBoxResolution;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    public javax.swing.JPanel jPanelFFmpegPath;
+    private javax.swing.JPanel jPanel4;
+    public javax.swing.JPanel jPanelCQOptions;
+    private javax.swing.JRadioButton jRadioButton1;
+    public javax.swing.JRadioButton jRadioButton2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSpinner jSpinner1;
+    private javax.swing.JSpinner jSpinner2;
     private javax.swing.JTable jTableFiles;
     private javax.swing.JTextField jTextFieldExtension;
     public javax.swing.JTextField jTextFieldFFmpegPath;
+    public javax.swing.JTextField jTextFieldNamingFormat;
     // End of variables declaration//GEN-END:variables
 
     public JTable getJTableFiles() {

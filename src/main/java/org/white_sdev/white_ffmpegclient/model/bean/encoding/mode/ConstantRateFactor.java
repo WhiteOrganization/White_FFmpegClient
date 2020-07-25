@@ -1,6 +1,6 @@
 /*
- *  Filename:  Show.java
- *  Creation Date:  Jul 16, 2020
+ *  Filename:  ConstantRateFactor.java
+ *  Creation Date:  Jul 25, 2020
  *  Purpose:   
  *  Author:    <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
  * 
@@ -96,139 +96,49 @@
  * 
  * Creative Commons may be contacted at creativecommons.org.
  */
-package org.white_sdev.white_ffmpegclient.model.bean;
+package org.white_sdev.white_ffmpegclient.model.bean.encoding.mode;
 
-import java.util.Collection;
+
 import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
-import static org.white_sdev.white_validations.parameters.ParameterValidator.notNullValidation;
+
 
 /**
  * 
  * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
- * @since Jul 16, 2020
+ * @since Jul 25, 2020
  */
 @Slf4j
-public class Show {
+public class ConstantRateFactor extends EncodingModeType{
     
-    public String name;
-    private LinkedHashSet<Season> seasons;
-    
-    /**
-     * Class Constructor.{Requirement_Reference}
-     * @author <a href="mailto:obed.vazquez@gmail.com">Obed Vazquez</a>
-     * @since Jul 16, 2020
-     * @param name The parameter to create the object.
-     * @throws IllegalArgumentException - if the argument provided is null.
-     */
-    public Show(String name) {
-	notNullValidation(name);
-	this.name=name;
-	this.seasons = new LinkedHashSet<>();
+    public ConstantRateFactor(String name, String shortName, Number qualityGrade, String globalConfigurationsSetName, Set<String> SupportedGlobalConfigs, String defaultGlobalConfigurationsElement) {
+	super(name!=null?name:"Constant Rate Factor",
+		shortName!=null?shortName:"CRF",
+		qualityGrade!=null?qualityGrade:22,
+		globalConfigurationsSetName!=null?globalConfigurationsSetName:"profile",
+		SupportedGlobalConfigs!=null?SupportedGlobalConfigs:new LinkedHashSet<>(){{
+		    add("baseline");
+		    add("main");
+		    add("high");
+		    add("high444p");
+		}},defaultGlobalConfigurationsElement );
     }
     
-    public void addSeason(Season season){
-	if(season==null) return;
-	addSeason(new LinkedHashSet<Season>(){{add(season);}});
-    }
-    
-    public void addSeason(Collection<Season> newSeasons){
-	if(newSeasons==null) return;
-	if(getSeasons()==null) setSeasons(new LinkedHashSet<>());
-	getSeasons().addAll(newSeasons);
-	for(Season season:newSeasons)
-	    season.show=this;
-    }
-
-    /**
-     * @return the seasons
-     */
-    public LinkedHashSet<Season> getSeasons() {
-	return seasons;
-    }
-
-    /**
-     * @param seasons the seasons to set
-     */
-    public void setSeasons(LinkedHashSet<Season> seasons) {
-	this.seasons = seasons;
-    }
-    
-    public JSONObject toJSON(){
-	JSONObject show=new JSONObject();
-	show.put("name", name);
-	JSONArray seasonsJSONArray = new JSONArray();
-	for(Season season: seasons){
-	    seasonsJSONArray.add(season.toJSON());
-	}
-	show.put("seasons", seasonsJSONArray);
-	return show;
-    }
-    
-    public static Show toShow(JSONObject showJSON){
-         
-        Show show=new Show((String) showJSON.get("name"));
-	
-        JSONArray seasonsJSONArray = (JSONArray) showJSON.get("seasons");
-	seasonsJSONArray.forEach( seasonJSON -> 
-		    show.addSeason(Season.toSeason( (JSONObject) seasonJSON, show ) ) 
-	    );
-	return show;
+    public ConstantRateFactor(){
+	this(null, null, null, null, null, null);
     }
     
     @Override
-    public String toString(){
-	String orderedSeasons="";
-	orderedSeasons = seasons!=null? seasons.stream().map((season) -> season+"\n").reduce(orderedSeasons, String::concat):null;
-	return "Show{[name:"+name+"][seasons:"+orderedSeasons+"]}";
-    }
-
-    public Integer getNumberOfEpisodeNumberDigits() {
-	log.trace("::getNumberOfEpisodeNumberDigits() - Start: ");
+    public String getCommand() {
+	log.trace("::getCommand(parameter) - Start: ");
 	try {
-	    
-	    Season lastSeason=getLastSeason();
-	    
-	    //startsOnEpisode > 8x10^soeDigits-1 --> +1 digit
-	    Integer numberOfEpisodeNumberDigits= lastSeason.endsOnEpisode != null? (""+lastSeason.endsOnEpisode).length():
-		    ( (lastSeason.startsOnEpisode>8*Math.pow(10,(lastSeason.startsOnEpisode.intValue()+"").length()-1))? 
-			("0"+lastSeason.startsOnEpisode.intValue()).length():
-			(""+lastSeason.startsOnEpisode.intValue()).length());
-	    
-	    
-	    log.trace("::getNumberOfEpisodeNumberDigits() - Finish: ");
-	    return numberOfEpisodeNumberDigits;
-	    
+	    //TODO: Implement operations of the method [Tools -> Templates]
+	    log.trace("::getCommand(parameter) - Finish: ");
+	    return "-crf "+this.qualityGrade;
 	} catch (Exception e) {
-	    throw new White_FFmpegClientException("Couln't obtain the number of digits that an episode of this season should have.", e);
+	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
 	}
     }
-
-    private Season getLastSeason() {
-	log.trace("::getLastSeason() - Start: ");
-	try {
-	    
-	    Season lastSeason=null;
-	    Integer greatestSeasonNumber=0;
-	    for(Season season:seasons){
-		if(season.endsOnEpisode==null) return season;
-		if (season.number==null) throw new White_FFmpegClientException("There is a season without number. This shouldn't be possible");
-		Integer currentSeasonNumber=Integer.parseInt(season.number) ;
-		if(greatestSeasonNumber<currentSeasonNumber){
-		    greatestSeasonNumber=currentSeasonNumber;
-		    lastSeason=season;
-		}
-	    }
-	    
-	    log.trace("::getLastSeason() - Finish: ");
-	    return lastSeason;
-	    
-	    
-	} catch (Exception e) {
-	    throw new White_FFmpegClientException("Couln't get last season of the show due to an error.", e);
-	}
-    }
+    
 }

@@ -98,6 +98,8 @@
  */
 package org.white_sdev.white_ffmpegclient.controller;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -117,7 +119,7 @@ import javax.swing.table.DefaultTableModel;
 import lombok.extern.slf4j.Slf4j;
 import static org.white_sdev.white_validations.parameters.ParameterValidator.*;
 import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
-import org.white_sdev.white_ffmpegclient.model.bean.EncoderConfigurations;
+import org.white_sdev.white_ffmpegclient.model.bean.encoding.FFmpegConfig;
 import org.white_sdev.white_ffmpegclient.service.EncoderService;
 import org.white_sdev.white_ffmpegclient.view.JFrameTerminal;
 import org.white_sdev.white_ffmpegclient.view.MainJFrame;
@@ -172,7 +174,10 @@ public class MainFrameController {
 	    DefaultTableModel tableModel = (DefaultTableModel) jTable.getModel();
 	    //tableModel.setColumnIdentifiers(JTableFile.REDUNDANT_COLUMN_NAMES.toArray());
 	    tableModel.addRow(new Object[]{"No Files Loaded", "", 0});
-	    view.jPanelFFmpegPath.setVisible(false);
+//	    customFFmpegPathToggleEditable();
+	    for(Component component : getComponents(view.jPanelCQOptions)) {
+		component.setEnabled(false);
+	    }
 
 	} catch (Exception e) {
 	    throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
@@ -202,8 +207,8 @@ public class MainFrameController {
 	try {
 
 	    loadEncoderConfigurations();
-	    encoderService.encode(reformat(jfiles));
-	    JOptionPane.showMessageDialog(view, "your files should be encoding to " + (EncoderConfigurations.useSubfolder ? "a subfolder" : "the same folder of the sources"));
+	    encoderService.encode(reformat(jfiles),view.jCheckBoxIdentifyEpisodes.isSelected());
+	    JOptionPane.showMessageDialog(view, "your files should be encoding to " + (FFmpegConfig.useSubfolder ? "a subfolder" : "the same folder of the sources"));
 
 	    log.trace("::encode() - Finish: ");
 
@@ -221,7 +226,7 @@ public class MainFrameController {
 
 	try {
 	    loadEncoderConfigurations();
-	    launchCommandsExposer();
+	    launchCommandsExposer(view.jCheckBoxIdentifyEpisodes.isSelected());
 
 	    log.trace("::showCommands() - Finish: ");
 	} catch (White_FFmpegClientException e) {
@@ -230,6 +235,26 @@ public class MainFrameController {
 	} catch (Exception e) {
 	    log.error("An error ocurred when trying to generate the commands.", e);
 	    JOptionPane.showMessageDialog(view, "An error ocurred when trying to generate the commands. ");
+	}
+    }
+    
+    
+    public void enableCQOptions() {
+	log.trace("::enableCQOptions() - Start: ");
+	try {
+	    
+	    for(Component component : getComponents(view.jPanelCQOptions)) {
+		component.setEnabled(view.jCheckBoxEnableCQOptions.isSelected());
+	    }
+	    
+	    log.trace("::enableCQOptions() - Finish: ");
+	    
+	} catch (White_FFmpegClientException e) {
+	    log.error("::enableCQOptions() - Exception Occurred: "+e);
+	    JOptionPane.showMessageDialog(null, "An error has occurred when enabling/disabling the Custom Quality Options cause:"+e.getCauses());
+	}catch (Exception e) {
+	    log.error("::enableCQOptions() - Exception Occurred: "+e);
+	    JOptionPane.showMessageDialog(null, "An unexpected error has occurred when enabling/disabling the Custom Quality Options.");
 	}
     }
     //</editor-fold>
@@ -316,12 +341,13 @@ public class MainFrameController {
 	log.trace("::loadEncoderConfigurations() - Start: ");
 	try {
 
-	    EncoderConfigurations.outputExtension = view.getExtension();
-	    EncoderConfigurations.addExternalSubtitles = view.jCheckBoxIncludeSubs.isSelected();
-	    EncoderConfigurations.selectedLanguage = (EncoderConfigurations.Language) view.jComboBoxDefaultLanguage.getSelectedItem();
-	    if (view.jCheckBoxCustomFFmpeg.isSelected()) EncoderConfigurations.ffmpegPath = view.jTextFieldFFmpegPath.getText();
-	    EncoderConfigurations.useSubfolder = view.jCheckBoxEncodeToSubfolder.isSelected();
-	    EncoderConfigurations.videoResolution=view.jComboBoxResolution.getSelectedItem().toString();
+	    FFmpegConfig.outputExtension = view.getExtension();
+	    FFmpegConfig.addExternalSubtitles = view.jCheckBoxIncludeSubs.isSelected();
+	    FFmpegConfig.selectedLanguage = (FFmpegConfig.Language) view.jComboBoxDefaultLanguage.getSelectedItem();
+	    if (view.jCheckBoxCustomFFmpeg.isSelected()) FFmpegConfig.ffmpegPath = view.jTextFieldFFmpegPath.getText();
+	    FFmpegConfig.useSubfolder = view.jCheckBoxEncodeToSubfolder.isSelected();
+	    FFmpegConfig.videoResolution=view.jComboBoxResolution.getSelectedItem().toString();
+	    FFmpegConfig.useCustomQuality=view.jCheckBoxEnableCQOptions.isSelected();
 
 	    log.trace("::loadEncoderConfigurations() - Finish: ");
 	} catch (Exception e) {
@@ -330,7 +356,7 @@ public class MainFrameController {
     }
 
     //</editor-fold>
-    public void launchCommandsExposer() {
+    public void launchCommandsExposer(Boolean autoDetectEpisodes) {
 	log.trace("::launchCommandsExposer() - Start: ");
 	try {
 
@@ -344,7 +370,7 @@ public class MainFrameController {
 			terminal.setVisible(true);
 
 			Boolean success = displayCommand(terminal.getTerminal(),
-				encoderService.getEncodingCommands(reformat(jfiles), EncoderConfigurations.useSubfolder, EncoderConfigurations.outputExtension));
+				encoderService.getEncodingCommands(reformat(jfiles), FFmpegConfig.useSubfolder, FFmpegConfig.outputExtension, autoDetectEpisodes));
 
 			if (!success) {
 			    javax.swing.JOptionPane.showMessageDialog(null, "No commands to show. No files selected?");
@@ -400,15 +426,21 @@ public class MainFrameController {
 	}
     }
 
-    public void customFFmpegPathActivated() {
+    public void customFFmpegPathToggleEditable() {
 	log.trace("::customFFmpegPathActivated() - Start: ");
 	try {
-	    view.jPanelFFmpegPath.setVisible(true);
+	    //TODO remove unused code
+//	    view.jPanelFFmpegPath.setVisible(true);
+//	    view.jTextFieldFFmpegPath.setVisible(view.jCheckBoxCustomFFmpeg.isSelected());
+//	    view.jTextFieldFFmpegPath.revalidate();
+//	    view.jTextFieldFFmpegPath.repaint();
+	    view.jTextFieldFFmpegPath.setEditable(view.jCheckBoxCustomFFmpeg.isSelected());
 	    log.trace("::customFFmpegPathActivated() - Finish: ");
 	} catch (Exception e) {
 	    throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
 	}
     }
+
 
     public class JTableFile {
 
@@ -463,6 +495,19 @@ public class MainFrameController {
 	    }
 	}
 
+    }
+
+    public static Component[] getComponents(Component container) {
+	ArrayList<Component> list;
+	try {
+	    list = new ArrayList<>(Arrays.asList( ((Container) container).getComponents()) );
+	    for (int index = 0; index < list.size(); index++) 
+		list.addAll(Arrays.asList(getComponents(list.get(index))));
+	} catch (ClassCastException e) {
+	    list = new ArrayList<>();
+	}
+
+	return list.toArray(new Component[list.size()]);
     }
 
 }

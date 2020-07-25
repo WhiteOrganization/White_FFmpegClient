@@ -101,7 +101,7 @@ package org.white_sdev.tests.white_ffmpegclient.service;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
-import org.white_sdev.white_ffmpegclient.model.bean.Episode;
+import org.white_sdev.white_ffmpegclient.model.bean.shows.Episode;
 import org.white_sdev.white_ffmpegclient.service.ShowsManager;
 
 /**

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.white_sdev</groupId>
     <artifactId>White_FFmpegClient</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>White_FFmpegClient</name>
     <description>Client to help with the encoding files (Streams) process with ffmpeg</description>
     <packaging>jar</packaging>
