@@ -104,6 +104,7 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
 import static org.white_sdev.white_validations.parameters.ParameterValidator.notNullValidation;
 
 
@@ -173,6 +174,17 @@ public class Episode {
     @Override
     public String toString() {
 	return "Episode{[name:" + name + "][seasonEpisodeNumber:" + seasonEpisodeNumber + "][absoluteEpisodeNumber:" + absoluteEpisodeNumber + "]}";
+    }
+
+    public String getSeasonBasedName() {
+	log.trace("::getSeasonBasedName(parameter) - Start: ");
+	try {
+	    //TODO: Implement operations of the method [Tools -> Templates]
+	    log.trace("::getSeasonBasedName(parameter) - Finish: ");
+	    return "S"+season.number+"E"+seasonEpisodeNumber;
+	} catch (Exception e) {
+	    throw new White_FFmpegClientException("Impossible to complete the operation due to an unknown internal error.", e);
+	}
     }
     
 }

@@ -171,7 +171,7 @@ public class VideoResolution {
 	return elementsArray;
     }
     
-    public static VideoResolution getVideoResolutionFrom(String name){
+    public static VideoResolution getVideoResolutionWithName(String name){
 	if(name==null || name.isBlank()) return null;
 	
 	for(VideoResolution videoResolution:SUPPORTED_VIDEO_RESOLUTIONS){

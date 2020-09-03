@@ -117,6 +117,7 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 import org.white_sdev.white_ffmpegclient.exceptions.White_FFmpegClientException;
 import org.white_sdev.white_ffmpegclient.model.bean.*;
+import org.white_sdev.white_ffmpegclient.model.bean.encoding.mode.EncodingModeType;
 import static org.white_sdev.white_validations.parameters.ParameterValidator.notNullValidation;
 
 /**
@@ -180,7 +181,8 @@ public class EncoderService {
 		    }
 
 		    episode.file=file;
-		    String command=getEncodingCommand(episode,useSubfolder,outputExtension,FFmpegConfig.addExternalSubtitles, VideoResolution.getVideoResolutionFrom(FFmpegConfig.videoResolution) );
+//		    String command=getEncodingCommand(episode,useSubfolder,outputExtension,FFmpegConfig.addExternalSubtitles, VideoResolution.getVideoResolutionWithName(FFmpegConfig.videoResolution) );
+		    String command=getEncodingCommand( episode,new FFmpegConfig() )  ;
 		    episode.encodingCommand=command;
 		    commands.add(command);
 		    currentEpisodes.add(episode);
@@ -209,6 +211,7 @@ public class EncoderService {
      * @param addExternalSubtitles
      * @return 
      */
+    @Deprecated
     public String getEncodingCommand(Episode episode,Boolean useSubfolder, String outputExtension,Boolean addExternalSubtitles,VideoResolution resolution) {
 	log.trace("::getEncodingCommand(episode) - Start: ");
 	if (episode == null) return null;
@@ -277,6 +280,91 @@ public class EncoderService {
 	    throw new White_FFmpegClientException("The encoding command is unobtainable.", e);
 	}
     }
+    
+    public String getEncodingCommand(Episode episode, FFmpegConfig configurations) {
+	log.trace("::getEncodingCommand(episode) - Start: ");
+	if (episode == null) return null;
+	try {
+	    VideoResolution resolution = VideoResolution.getVideoResolutionWithName(FFmpegConfig.videoResolution);
+	    
+	    /*
+	     * sample deprecated outup:
+	     * "ffmpeg -i \"[Erai-raws] One Piece - 837 [1080p][Multiple Subtitle].mkv\" -vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v 12M"
+	     *    + " -maxrate:v 15M -cq 24 -qmin 24 -qmax 24  -rc cbr -c:a aac -b:a 224k -map 0:v -map 0:a -map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text \"One Piece S19E55-0837-[NvEnc@24+slow][ffmpeg].mp4\""
+	     */
+	    	    
+	    if (configurations.useSubfolder) encodingSubFolderPath="\""+episode.file.getParent()+File.separator+encodingSubFolder+"\\"+"\"";
+	    
+	    //Simulated Constants ought to be parameterized in later versions
+	    String ENCODER=(FFmpegConfig.ffmpegPath==null?"ffmpeg":"\""+FFmpegConfig.ffmpegPath+"\"")+" -hwaccel nvdec";
+	    
+//	    String ENCODER_VIDEO="-vcodec h264_nvenc -pix_fmt yuv420p -preset slow -b:v "+resolution.idealBitrateKB+"K -rc cbr -cbr true -cq 24 -qmin 24 -qmax 24 "
+//		    + "-crf "+(resolution.name!=null&&resolution.name.equals("4K")?"24":"24");
+	    String ENCODER_VIDEO="-vcodec h264_nvenc";
+	    String encoderQuality=configurations.selectedEncodingMode.getCommand();
+//	    String encoderQuality="-b:v 12M -maxrate:v 12M -cq 24 -qmin 24 -qmax 24 -rc cbr";
+	    String ENCODER_AUDIO="-c:a aac";
+	    
+	    //Current support for Spanish and English only. This will probably move to its own class when subtitles are more mature.
+	    String DEFAULTED_ORIGIN_SPANISH_SUBS="-map 0:s:m:language:spa -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:eng -c:s mov_text";
+	    String DEFAULTED_ORIGIN_ENGLISH_SUBS="-map 0:s:m:language:eng -c:s mov_text -disposition:s:s:0 default -map 0:s:m:language:spa -c:s mov_text";
+	    String DEFAULT_ORIGIN_SUBTITLES="-map 0:s -c:s mov_text";
+	    String subtitles=	(FFmpegConfig.selectedLanguage==FFmpegConfig.Language.NONE? DEFAULT_ORIGIN_SUBTITLES:
+				 FFmpegConfig.selectedLanguage==FFmpegConfig.Language.ENGLISH? DEFAULTED_ORIGIN_ENGLISH_SUBS:
+				 DEFAULTED_ORIGIN_SPANISH_SUBS);
+	    
+	    log.info("::getEncodingCommand(episode) addExternalSubtitles:" + configurations.addExternalSubtitles);
+	    Subtitle externalSubtitle=null;
+	    if(configurations.addExternalSubtitles){
+		externalSubtitle=getSubtitle(episode);
+		if(externalSubtitle!=null ||  JOptionPane.showConfirmDialog(null, 
+			"it was impossible to find the subtitles file for episode file:"+ episode.file.getName()+ ".\n "
+				+ "Do want to skip it? (If NO the enire process will be canceled) ", "WARNING", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
+		    subtitles="-map 1:s:0 -c:s mov_text -metadata:s:s:0 language="+externalSubtitle.getSubtitleLanguageCode()+" -disposition:s:s:0 default "+DEFAULT_ORIGIN_SUBTITLES;
+		}else{
+		    return null;
+		}
+	    }
+	    
+	    
+	    
+	    
+	    String encoderMappings="-map 0:v -map 0:a "+subtitles;
+	    String VERBOSE="-["+resolution.verticalPixels+"p][NvEnc+"+configurations.selectedEncodingMode.shortName+"@"+configurations.selectedEncodingMode.qualityGrade+"][ffmpeg]";
+	    
+	    
+	    
+	    String input="-i \""+episode.file.getAbsolutePath()+"\"";
+	    String outputEpisodeSimplifiedName= episode.season.show.name+" "+episode.getSeasonBasedName();
+//	    VideoResolution.getSupportedResolutionsNames()
+//		    VideoResolution.SUPPORTED_VIDEO_RESOLUTIONS
+//			    FFmpegConfig.videoResolution;
+//			    ;
+	    String resize=configurations.useCustomQuality?"-vf scale=-2:"+resolution.verticalPixels:"";
+	    String metadataTitle="-metadata title=\""+outputEpisodeSimplifiedName+"\"";
+	    String externalSubs=configurations.addExternalSubtitles?"-i \""+externalSubtitle.file.getAbsolutePath()+"\"":"";
+	    String output="\""+episode.file.getParent()+File.separator+(configurations.useSubfolder?encodingSubFolder+"\\":"")+outputEpisodeSimplifiedName
+		    +((episode.absoluteEpisodeNumber!=null&&!episode.absoluteEpisodeNumber.isBlank())?("-"+episode.absoluteEpisodeNumber):"") //adds absolute number in case it has it
+		    +VERBOSE+"."+configurations.outputExtension+"\"";
+	    
+	    String cmd=ENCODER+" "+
+		    input+" "+
+		    (configurations.addExternalSubtitles?externalSubs+" ":"")+
+		    resize + " "+
+		    metadataTitle+" "+
+		    ENCODER_VIDEO+" "+
+		    encoderQuality+" "+
+		    ENCODER_AUDIO+" "+
+		    encoderMappings+" "+
+		    output;
+	    
+	    log.trace("::getEncodingCommand(episode) - Finish: ");
+	    return cmd;
+	    
+	} catch (Exception e) {
+	    throw new White_FFmpegClientException("The encoding command is unobtainable.", e);
+	}
+    }
 
     
     /**
@@ -336,17 +424,22 @@ public class EncoderService {
 	if (episode == null) return null;
 	try {
 	    
-	    for (java.util.Map.Entry<FFmpegConfig.Language, String> entry : Subtitle.SUPPORTED_LANGUAGES.entrySet()) {
-		String languageCode = entry.getValue(); //String Representation in a filename
+	    for (java.util.Map.Entry<FFmpegConfig.Language, String> languageEntry : Subtitle.SUPPORTED_LANGUAGES.entrySet()) {
+		String languageCode = languageEntry.getValue(); //String Representation in a filename
 		String fileNameNoExtension=getNameWithoutExtension(episode.file.getPath());
 		
 		//Iterates on SUPPORTED_SUBSTITLE_EXTENSIONS {ASS SRT}
 		for(Map.Entry<Subtitle.SubtitleFileExtension,String> subtitleExtension:Subtitle.SUPPORTED_SUBSTITLE_EXTENSIONS.entrySet()){
+		    //First it looks for the file with the exact name of the video + language +extension
 		    String subsFileNameToLookFor= fileNameNoExtension + "." + languageCode + "." + subtitleExtension.getValue();
-		    File foundSubtitlesFile=null;
 		    log.info("::getSubtitleLanguage(episode) - Looking for subtitle: "+subsFileNameToLookFor);
-		    if(new File(subsFileNameToLookFor).exists())foundSubtitlesFile=new File(subsFileNameToLookFor);
-		     return new Subtitle(foundSubtitlesFile,entry);//continue if not found 
+		    File foundSubtitlesFile=new File(subsFileNameToLookFor);
+		    if(foundSubtitlesFile.exists()) return new Subtitle(foundSubtitlesFile,languageEntry); 
+		    
+		    //If not found; it looks for it in the entire folder looking for cues in the file names		    
+		    foundSubtitlesFile=thoroughlySubtitlesSearch(episode,languageCode,subtitleExtension.getValue());
+		    if(foundSubtitlesFile != null && foundSubtitlesFile.exists())
+			return new Subtitle(foundSubtitlesFile,languageEntry);
 		}
 	    }
 	    
@@ -358,7 +451,7 @@ public class EncoderService {
 	}
     }
 
-    private String getNameWithoutExtension(String fileName) {
+    public String getNameWithoutExtension(String fileName) {
 	log.trace("::getNameWithoutExtension(name) - Start: "+fileName);
 	if (fileName == null) return null;
 	try {
@@ -378,6 +471,50 @@ public class EncoderService {
 	    
 	} catch (Exception e) {
 	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
+	}
+    }
+
+    public File thoroughlySubtitlesSearch(Episode episode, String languageCode, String subtitleExtension) {
+	log.trace("::thoroughlySubtitlesSearch(parameter) - Start: ");
+	
+	notNullValidation(new ArrayList<>(){{
+				add(episode);
+				add(languageCode);
+				add(subtitleExtension);
+			    }},
+		"The episodeto look for its subtitle file, language code and/or subtitle extension can't be null, make sure you are providing a valid episode instance",
+		White_FFmpegClientException.class);
+	
+	try {
+	    
+	    String parentFolderPath=episode.file.getParent();
+	    String show = episode.season.show.name;
+	    String absoluteEpisode = episode.absoluteEpisodeNumber;
+	    String episodeAndSeasonName = episode.getSeasonBasedName();
+	    
+	    File parentFolder=new File(parentFolderPath);
+	    File[] allFilesInFolder=parentFolder.listFiles();
+	    if(allFilesInFolder==null) throw new White_FFmpegClientException("The path provided episode to look for its subtitles does not exist!");
+	    log.info("::getSubtitleLanguage(episode) - Looking for subtitle with elements: [show:"+show+"][subtitleExtension:"+subtitleExtension+"]"
+			+ "[languageCode:"+languageCode+"][absoluteEpisode:"+absoluteEpisode+" || episodeAndSeasonName:"+episodeAndSeasonName+"]");
+	    
+	    for(File fileInFolder:allFilesInFolder){
+		String fileName=fileInFolder.getName();
+		
+		//<editor-fold defaultstate="collapsed" desc="Core">
+		if(fileName.contains(show) && fileName.contains(subtitleExtension) && fileName.contains(languageCode) &&
+			(fileName.contains(Integer.parseInt(absoluteEpisode)+"") || fileName.contains(episodeAndSeasonName) ) ) {
+		    log.trace("::thoroughlySubtitlesSearch(parameter) - Finish: Subtitle Found");
+		    return fileInFolder;
+		}
+		//</editor-fold>
+	    }
+	    
+	    log.trace("::thoroughlySubtitlesSearch(parameter) - Finish: Couldn't find the subtitle file.");
+	    return null;
+	    
+	} catch (Exception e) {
+	    throw new White_FFmpegClientException("Impossible to find a subtitle file.", e);
 	}
     }
 

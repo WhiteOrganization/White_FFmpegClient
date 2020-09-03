@@ -141,7 +141,7 @@ public class ConstantBitrate extends EncodingModeType{
 	try {
 	    //TODO: Implement operations of the method [Tools -> Templates]
 	    log.trace("::getCommand(parameter) - Finish: ");
-	    return "-b:v "+this.qualityGrade+"M -rc cbr -cbr true ";
+	    return "-b:v "+this.qualityGrade+"M -rc cbr -cbr true";
 	} catch (Exception e) {
 	    throw new RuntimeException("Impossible to complete the operation due to an unknown internal error.", e);
 	}

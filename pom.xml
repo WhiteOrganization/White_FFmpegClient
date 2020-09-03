@@ -44,7 +44,7 @@
 	<dependency>
 	    <groupId>com.github.white-sdev</groupId>
 	    <artifactId>White_Validations</artifactId>
-	    <version>1.0.0</version>
+	    <version>1.0.1</version>
 	    <exclusions>
 	     <exclusion>
 	      <groupId>org.slf4j</groupId>

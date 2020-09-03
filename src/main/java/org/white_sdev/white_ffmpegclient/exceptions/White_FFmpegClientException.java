@@ -140,15 +140,13 @@ public class White_FFmpegClientException extends RuntimeException{
 	final String BREAKLINE_REGEX="[[\\r\\n]\\r\\n]";
 	
 	String causes= "Cause: "+getMessage()+BREAKLINE;
-	String tempMessage;
+	String causeMessage;
 	String lastAt="";
 	for(Throwable cause=this.getCause();cause!=null;cause=cause.getCause()){
-	    tempMessage=cause.getMessage();
-	    if(tempMessage!=null && !tempMessage.isBlank()){
+	    causeMessage=cause.getMessage();
+	    if(causeMessage!=null && !causeMessage.isBlank()){
 		
-		System.out.println("tempMessage:"+tempMessage);
-		String[] causedBy=tempMessage.split(BREAKLINE_REGEX);
-		System.out.println("causedBy"+ new java.util.ArrayList<>(java.util.Arrays.asList(causedBy)) );
+		String[] causedBy=causeMessage.split(BREAKLINE_REGEX);
 		
 		causes+="Cause: "+causedBy[0]+BREAKLINE;
 		//causes+="---"+cause.getLocalizedMessage();
